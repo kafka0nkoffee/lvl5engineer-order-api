@@ -1,0 +1,10 @@
+{
+  "request": {
+    "method": "POST",
+    "url": "/inventory/check/partial"
+  },
+  "response": {
+    "status": 200,
+    "body": "{\"items\": [{\"sku\": \"SHOE-RED-42\", \"available\": true, \"quantity\": 2}, {\"sku\": \"BELT-BRN-M\", \"available\": false, \"quantity\": 0}]}"
+  }
+}

@@ -1,0 +1,10 @@
+{
+  "request": {
+    "method": "POST",
+    "url": "/payments/charge/success"
+  },
+  "response": {
+    "status": 200,
+    "body": "{\"status\": \"ACCEPTED\", \"transaction_id\": \"txn-abc-123\", \"amount\": 134.97}"
+  }
+}

@@ -1,0 +1,11 @@
+{
+  "request": {
+    "method": "POST",
+    "url": "/payments/charge/timeout"
+  },
+  "response": {
+    "status": 504,
+    "body": "{\"status\": \"TIMEOUT\"}",
+    "fixedDelayMilliseconds": 6000
+  }
+}

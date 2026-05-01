@@ -1,0 +1,10 @@
+{
+  "request": {
+    "method": "POST",
+    "url": "/inventory/check/out-of-stock"
+  },
+  "response": {
+    "status": 200,
+    "body": "{\"items\": [{\"sku\": \"SHOE-RED-42\", \"available\": false, \"quantity\": 0}]}"
+  }
+}

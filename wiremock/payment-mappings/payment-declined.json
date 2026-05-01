@@ -1,0 +1,10 @@
+{
+  "request": {
+    "method": "POST",
+    "url": "/payments/charge/declined"
+  },
+  "response": {
+    "status": 402,
+    "body": "{\"status\": \"DECLINED\", \"reason\": \"INSUFFICIENT_FUNDS\"}"
+  }
+}
