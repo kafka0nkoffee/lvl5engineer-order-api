@@ -1,4 +1,5 @@
 # CLAUDE.md
+
 > This file is read automatically by Claude Code at the start of every session.
 > It defines how the agent should behave, what it should never touch, and how
 > it should document its work for the Level 5 Engineer newsletter.
@@ -32,7 +33,9 @@ order-api/
 ├── tests/
 │   ├── features/                       # Gherkin scenarios — the external spec
 │   └── steps/                          # pytest-bdd step definitions
-├── FINDINGS.md                         # Running log of learnings (see protocol below)
+├── findings/
+│   ├── README.md                       # Index of all findings files
+│   └── issue-{N}-{topic}.md           # One file per newsletter issue/session
 ├── requirements.txt
 └── CLAUDE.md                           # You are here
 ```
@@ -42,6 +45,7 @@ order-api/
 ## What you can and cannot do
 
 ### ✅ You may
+
 - Modify `app/main.py` and `mock_server.py` freely
 - Add new WireMock stub mappings in `wiremock/payment-mappings/` or `wiremock/inventory-mappings/`
 - Add new step definitions in `tests/steps/`
@@ -50,6 +54,7 @@ order-api/
 - Create new test feature files in `tests/features/`
 
 ### ❌ You may not
+
 - Modify existing `.feature` files in `tests/features/` — these are the external
   behavioural spec written by the human. They define what the system must do.
   The agent's job is to satisfy them, not rewrite them.
@@ -60,11 +65,11 @@ order-api/
 
 ## External dependencies
 
-| Service | Simulated by | Port | Mapping dir |
-|---|---|---|---|
-| Payment Gateway | WireMock / mock_server.py | 8091 | `wiremock/payment-mappings/` |
+| Service           | Simulated by              | Port | Mapping dir                    |
+| ----------------- | ------------------------- | ---- | ------------------------------ |
+| Payment Gateway   | WireMock / mock_server.py | 8091 | `wiremock/payment-mappings/`   |
 | Inventory Service | WireMock / mock_server.py | 8092 | `wiremock/inventory-mappings/` |
-| Order API | FastAPI / uvicorn | 8093 | `app/main.py` |
+| Order API         | FastAPI / uvicorn         | 8093 | `app/main.py`                  |
 
 **Important:** The mock servers simulate real external services. Do not make real
 HTTP calls to external services during testing. All integration work happens
@@ -89,33 +94,53 @@ All 5 scenarios must pass before any work is considered complete.
 
 ---
 
-## Documentation protocol — FINDINGS.md
+## Documentation protocol — findings/
 
 This is the most important instruction in this file.
 
-**For every work session, maintain `FINDINGS.md` in real time.**
+**At the start of every session, create a new file in `findings/` named:**
 
+```
+findings/issue-{N}-{short-topic}.md
+```
+
+For example: `findings/issue-04-pact-contract-testing.md`
+
+Do not append to existing findings files. Each session gets its own file.
 Do not summarise at the end of a session. Write findings as you encounter them.
-Use the following structure for each entry:
+
+**After creating the file, add a row to `findings/README.md`:**
+
+```markdown
+| #N | Short topic description | [findings/issue-N-topic.md](findings/issue-N-topic.md) |
+```
+
+Use the following structure for each entry within the findings file:
 
 ```markdown
 ## [Short title of what was attempted]
+
 **Date:** YYYY-MM-DD
 **Status:** ✅ Worked | ❌ Failed | ⚠️ Partial
 
 ### What I tried
+
 [What was attempted and why]
 
 ### What happened
+
 [Exact output, error messages, unexpected behaviour]
 
 ### Root cause
+
 [Why it happened — be specific, not vague]
 
 ### The fix
+
 [What changed and why it worked]
 
 ### Why this matters
+
 [One paragraph written as if explaining to a senior engineer
 who hasn't seen this codebase. This paragraph will be used
 directly in the newsletter. Make it honest, specific, and
@@ -134,7 +159,7 @@ finding — not as documentation for a codebase.
 feat: add Pact consumer test for payment service
 fix: handle 404 passthrough from payment mock
 test: add scenario for concurrent order requests
-docs: update FINDINGS.md with retry logic learnings
+docs: add findings/issue-04-pact-contract-testing.md
 chore: update requirements.txt
 ```
 
@@ -146,6 +171,7 @@ into a single commit.
 ## Newsletter context
 
 The human author of this newsletter is:
+
 - A Senior Software Engineer with 10+ years of experience
 - Currently at Level 2–3 on the AI-native development ladder
 - Documenting the climb to Level 5 in public, in real time

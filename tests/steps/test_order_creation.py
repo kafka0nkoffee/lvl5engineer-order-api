@@ -1,6 +1,7 @@
-import time, threading, pytest, requests
+import time, threading, pytest, requests, os, sys
 from pytest_bdd import scenarios, given, when, then, parsers
-import sys; sys.path.insert(0, "/home/claude/order-api")
+PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+sys.path.insert(0, PROJECT_ROOT)
 from mock_server import start_mock_server
 
 scenarios("../features/order_creation.feature")
@@ -16,8 +17,8 @@ inventory_log = None
 def start_servers():
     global payment_log, inventory_log
     import os, uvicorn
-    _, payment_log   = start_mock_server(PAYMENT_PORT,   "/home/claude/order-api/wiremock/payment-mappings")
-    _, inventory_log = start_mock_server(INVENTORY_PORT, "/home/claude/order-api/wiremock/inventory-mappings")
+    _, payment_log   = start_mock_server(PAYMENT_PORT,   os.path.join(PROJECT_ROOT, "wiremock/payment-mappings"))
+    _, inventory_log = start_mock_server(INVENTORY_PORT, os.path.join(PROJECT_ROOT, "wiremock/inventory-mappings"))
 
     os.environ["PAYMENT_URL"]             = f"http://localhost:{PAYMENT_PORT}"
     os.environ["INVENTORY_URL"]           = f"http://localhost:{INVENTORY_PORT}"
