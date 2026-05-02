@@ -115,6 +115,16 @@ Do not summarise at the end of a session. Write findings as you encounter them.
 | #N | Short topic description | [findings/issue-N-topic.md](findings/issue-N-topic.md) |
 ```
 
+**Also update the root `README.md`:**
+
+- Change the `_Repo up to date with Issue #N_` line to the current issue number
+- Add the new findings file to the project structure tree
+- Add a new section describing what changed this session, linking to the findings file
+- Keep the README accurate — it is the first thing a reader sees on GitHub
+
+The README is a public-facing document. Write updates to it as a practitioner
+summarising work for a peer, not as a changelog entry.
+
 Use the following structure for each entry within the findings file:
 
 ```markdown
