@@ -221,6 +221,52 @@ The honest overhead of CI is not the YAML. It's the discipline of not skipping. 
 
 ---
 
+## Port conflict: CI environment vs pytest session fixtures
+
+**Date:** 2026-06-03
+**Status:** ✅ Fixed
+
+### What I tried
+
+The initial `ci.yml` included explicit "Start mock servers" steps in the `test` and `pact-verify` jobs — inline Python that called `start_mock_server(8091, ...)` and `start_mock_server(8092, ...)` before running pytest. The intent was to ensure the servers were up before any test code ran.
+
+### What happened
+
+The pipeline failed with:
+
+```
+OSError: [Errno 98] Address already in use
+```
+
+on ports 8091 and 8092 in both affected jobs.
+
+### Root cause
+
+Two things were starting the servers, not one.
+
+The YAML step started the servers as a background process before pytest launched. Then pytest launched, and its session-scoped fixtures started the same servers again on the same ports:
+
+- `tests/steps/test_order_creation.py` has a `scope="session", autouse=True` fixture that calls `start_mock_server(8091, ...)` and `start_mock_server(8092, ...)`.
+- `tests/pact/test_provider_verification.py` has `scope="module"` fixtures that do the same for both ports.
+
+The YAML step and the pytest fixture both believed they were responsible for server lifecycle. The port was already bound when the second `HTTPServer(("localhost", port), handler)` call was made.
+
+Locally this never surfaced because `pytest tests/steps/ -v` was always run directly — the session fixture started the servers, nothing else was competing. In CI, the YAML pre-start step was an addition that had no local equivalent, so the conflict only appeared in the pipeline.
+
+### The fix
+
+Removed both "Start mock servers" steps from `ci.yml` entirely. The pytest session fixtures already own server lifecycle correctly — they start servers before any test runs and the servers stay up for the duration of the session (daemon threads). The YAML had no role to play.
+
+The corrected YAML for both jobs goes directly from "Install dependencies" to the pytest invocation, with no intermediate server start step.
+
+### Why this matters
+
+This is the standard failure mode when you split responsibility for infrastructure setup across two layers without documenting which layer owns it. The pytest fixtures were written to be self-contained — the test file imports `start_mock_server` and starts it directly, so the test can be run anywhere without external coordination. That design is correct. The YAML step was added on the assumption that CI needed explicit infrastructure setup, which is true for services that run as separate processes (a real database, a real WireMock instance, a Redis container). It is false for services that are started inside the test process itself by session fixtures.
+
+The tell is in the fixture scope: `scope="session"` means pytest starts the server once per test session and shares it across all tests in the run. That is exactly what a CI "Start server" step would do — but the fixture already does it. Adding the YAML step was a duplication of a responsibility that was already handled correctly. The fix is not a workaround; it is removing the wrong layer.
+
+---
+
 ## Final suite verification — main branch
 
 **Date:** 2026-06-03

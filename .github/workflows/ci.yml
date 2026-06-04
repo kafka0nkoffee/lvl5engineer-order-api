@@ -22,18 +22,6 @@ jobs:
           . .venv/bin/activate
           pip install -r requirements.txt
 
-      - name: Start mock servers
-        run: |
-          . .venv/bin/activate
-          python -c "
-          import time
-          from mock_server import start_mock_server
-          start_mock_server(8091, 'wiremock/payment-mappings')
-          start_mock_server(8092, 'wiremock/inventory-mappings')
-          time.sleep(86400)
-          " &
-          sleep 2
-
       - name: Run Gherkin test suite
         run: |
           . .venv/bin/activate
@@ -95,18 +83,6 @@ jobs:
         with:
           name: pact-files
           path: pacts/
-
-      - name: Start mock servers
-        run: |
-          . .venv/bin/activate
-          python -c "
-          import time
-          from mock_server import start_mock_server
-          start_mock_server(8091, 'wiremock/payment-mappings')
-          start_mock_server(8092, 'wiremock/inventory-mappings')
-          time.sleep(86400)
-          " &
-          sleep 2
 
       - name: Run provider verification
         run: |
