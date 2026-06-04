@@ -1,10 +1,15 @@
 import os, uuid
+from datetime import datetime
 import httpx
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
+from fastapi.responses import JSONResponse
 from pydantic import BaseModel
 from typing import List, Optional
 
 app = FastAPI()
+
+# In-memory order store — populated by POST /orders, read by GET /orders/{id}/status
+_orders: dict = {}
 
 
 class OrderItem(BaseModel):
@@ -69,9 +74,14 @@ def create_order(req: OrderRequest):
             pay_data = pay_resp.json()
 
             if pay_resp.status_code == 200:
+                order_id = str(uuid.uuid4())
+                _orders[order_id] = {
+                    "db_status": "CONFIRMED",
+                    "order_created_at": datetime.utcnow().isoformat(),
+                }
                 return {
                     "status": "CONFIRMED",
-                    "order_id": str(uuid.uuid4()),
+                    "order_id": order_id,
                 }
 
             # Declined or other non-200
@@ -95,4 +105,16 @@ def create_order(req: OrderRequest):
         "payment_pending": True,
         "message": "Payment confirmation is in progress",
         "retry_count": attempt,
+    }
+
+
+@app.get("/orders/{order_id}/status")
+def get_order_status(order_id: str):
+    order = _orders.get(order_id)
+    if order is None:
+        return JSONResponse(status_code=404, content={"error": "Order not found"})
+    return {
+        "order_id": order_id,
+        "status": order["db_status"],
+        "placed_at": order["order_created_at"],
     }
