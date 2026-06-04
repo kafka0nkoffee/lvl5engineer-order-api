@@ -116,5 +116,7 @@ def get_order_status(order_id: str):
     return {
         "order_id": order_id,
         "status": order["db_status"],
+        "db_status": order["db_status"],
         "placed_at": order["order_created_at"],
+        "order_created_at": order["order_created_at"],
     }

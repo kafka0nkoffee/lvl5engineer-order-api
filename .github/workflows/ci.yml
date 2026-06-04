@@ -1,0 +1,161 @@
+name: CI
+
+on:
+  push:
+    branches: ["**"]
+  pull_request:
+    branches: [main]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies
+        run: |
+          python -m venv .venv
+          . .venv/bin/activate
+          pip install -r requirements.txt
+
+      - name: Start mock servers
+        run: |
+          . .venv/bin/activate
+          python -c "
+          import time
+          from mock_server import start_mock_server
+          start_mock_server(8091, 'wiremock/payment-mappings')
+          start_mock_server(8092, 'wiremock/inventory-mappings')
+          time.sleep(86400)
+          " &
+          sleep 2
+
+      - name: Run Gherkin test suite
+        run: |
+          . .venv/bin/activate
+          pytest tests/steps/ -v --tb=short
+
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: gherkin-results
+          path: .pytest_cache/
+
+  pact-consumer:
+    runs-on: ubuntu-latest
+    needs: test
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies
+        run: |
+          python -m venv .venv
+          . .venv/bin/activate
+          pip install -r requirements.txt
+
+      - name: Run Pact consumer tests
+        run: |
+          . .venv/bin/activate
+          pytest tests/pact/test_payment_gateway_consumer.py -v
+          pytest tests/pact/test_inventory_service_consumer.py -v
+
+      - name: Upload pact files
+        uses: actions/upload-artifact@v4
+        with:
+          name: pact-files
+          path: pacts/
+
+  pact-verify:
+    runs-on: ubuntu-latest
+    needs: pact-consumer
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies
+        run: |
+          python -m venv .venv
+          . .venv/bin/activate
+          pip install -r requirements.txt
+
+      - name: Download pact files
+        uses: actions/download-artifact@v4
+        with:
+          name: pact-files
+          path: pacts/
+
+      - name: Start mock servers
+        run: |
+          . .venv/bin/activate
+          python -c "
+          import time
+          from mock_server import start_mock_server
+          start_mock_server(8091, 'wiremock/payment-mappings')
+          start_mock_server(8092, 'wiremock/inventory-mappings')
+          time.sleep(86400)
+          " &
+          sleep 2
+
+      - name: Run provider verification
+        run: |
+          . .venv/bin/activate
+          pytest tests/pact/test_provider_verification.py -v
+
+      - name: Upload verification results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: pact-verification
+          path: .pytest_cache/
+
+  can-i-deploy:
+    runs-on: ubuntu-latest
+    needs: pact-verify
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies
+        run: |
+          python -m venv .venv
+          . .venv/bin/activate
+          pip install -r requirements.txt
+
+      - name: Download pact files
+        uses: actions/download-artifact@v4
+        with:
+          name: pact-files
+          path: pacts/
+
+      - name: Run can-i-deploy check
+        id: can_i_deploy
+        run: |
+          . .venv/bin/activate
+          python scripts/can_i_deploy.py
+          echo "result=SAFE TO DEPLOY" >> "$GITHUB_OUTPUT"
+
+      - name: Write deploy summary
+        if: always()
+        run: |
+          if [ "${{ steps.can_i_deploy.outcome }}" = "success" ]; then
+            echo "## ✅ SAFE TO DEPLOY" >> "$GITHUB_STEP_SUMMARY"
+            echo "All contracts verified. No breaking changes detected." >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "## ❌ DEPLOY BLOCKED" >> "$GITHUB_STEP_SUMMARY"
+            echo "Contract verification failed. Do not merge." >> "$GITHUB_STEP_SUMMARY"
+          fi
