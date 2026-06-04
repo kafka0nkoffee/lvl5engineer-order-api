@@ -1,6 +1,8 @@
 # Order Management API — Level 5 Engineer, [See Substack here](https://level5engineer.substack.com/p/the-level-5-engineer-the-map-i-didnt)
 
-_Repo up to date with Issue #5_
+![CI](https://github.com/kafka0nkoffee/lvl5engineer-order-api/actions/workflows/ci.yml/badge.svg)
+
+_Repo up to date with Issue #6_
 
 ## WireMock + Gherkin BDD + Pact contract testing demo project
 
@@ -36,12 +38,16 @@ order-api/
 ├── scripts/
 │   └── can_i_deploy.py                  # Local can-i-deploy simulation
 ├── pacts/                               # Generated .pact files (gitignored)
+├── .github/
+│   └── workflows/
+│       └── ci.yml                       # GitHub Actions pipeline (Issue #6)
 ├── findings/
 │   ├── README.md                        # Index of all findings by issue
 │   ├── issue-02-wiremock-gherkin.md     # Findings from Issue #2
 │   ├── issue-03-agent-fresh-implementation.md  # Findings from Issue #3
 │   ├── issue-04-pact-contract-testing.md       # Findings from Issue #4
-│   └── issue-05-the-spec-that-doesnt-lie.md    # Findings from Issue #5
+│   ├── issue-05-the-spec-that-doesnt-lie.md    # Findings from Issue #5
+│   └── issue-06-cicd-guardrails.md             # Findings from Issue #6
 ├── CLAUDE.md                            # Agent standing orders
 └── pytest.ini
 ```
@@ -87,6 +93,30 @@ uvicorn app.main:app --port 8093
 3. Out of stock → `UNAVAILABLE` (409), payment gateway never called
 4. Partial availability → `PARTIAL_UNAVAILABLE` (207), no auto-confirm, payment never called
 5. Payment timeout → `PAYMENT_PENDING` (202), inventory held 15 mins, max 2 retry attempts
+
+### Issue #6 — CI/CD guardrails
+
+Wired the full test suite into a four-job GitHub Actions pipeline: `test` (Gherkin) →
+`pact-consumer` → `pact-verify` → `can-i-deploy`. Each job is a dependency of the next,
+so a failing Gherkin suite skips Pact, and a broken consumer contract skips provider
+verification. The pipeline runs on every push to any branch and every pull request to main.
+
+The session included a deliberate breaking change test: renamed `status` to `result` in
+`wiremock/payment-mappings/payment-success.json` on a separate branch, pushed it, and
+confirmed locally that the `pact-verify` job fails with an exact diff while the Gherkin
+`test` job passes. This is the core claim of the session: Gherkin tests prove the system
+behaves correctly; Pact tests prove the contracts don't drift. The pipeline catches the
+breaking change that Gherkin misses, which is the whole point of having both.
+
+One pre-existing failure was fixed before writing any YAML: the bad-spec test from
+Issue #5 was intentionally left failing at the end of that session (the failure was the
+finding). That left main in a state where CI would have been red from day one without
+any feature change. The fix added response aliases so both the bad-spec and good-spec
+test suites pass against the same endpoint.
+
+See [`findings/issue-06-cicd-guardrails.md`](findings/issue-06-cicd-guardrails.md)
+for the full session walkthrough, the breaking change output, and "The honest part" — an
+unfiltered account of what the setup cost actually was.
 
 ### Issue #5 — The spec that doesn't lie
 

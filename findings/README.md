@@ -15,6 +15,7 @@ protocol defined in `CLAUDE.md`. They are the raw material for each newsletter i
 | #3    | Agent fresh implementation from spec | [issue-03-agent-fresh-implementation.md](issue-03-agent-fresh-implementation.md) |
 | #4    | Pact contract testing                | [issue-04-pact-contract-testing.md](issue-04-pact-contract-testing.md)           |
 | #5    | The spec that doesn't lie            | [issue-05-the-spec-that-doesnt-lie.md](issue-05-the-spec-that-doesnt-lie.md)     |
+| #6    | CI/CD guardrails                     | [issue-06-cicd-guardrails.md](issue-06-cicd-guardrails.md)                       |
 
 ---
 
