@@ -14,6 +14,7 @@ protocol defined in `CLAUDE.md`. They are the raw material for each newsletter i
 | #2    | WireMock + Gherkin BDD setup         | [issue-02-wiremock-gherkin.md](issue-02-wiremock-gherkin.md)                     |
 | #3    | Agent fresh implementation from spec | [issue-03-agent-fresh-implementation.md](issue-03-agent-fresh-implementation.md) |
 | #4    | Pact contract testing                | [issue-04-pact-contract-testing.md](issue-04-pact-contract-testing.md)           |
+| #5    | The spec that doesn't lie            | [issue-05-the-spec-that-doesnt-lie.md](issue-05-the-spec-that-doesnt-lie.md)     |
 
 ---
 

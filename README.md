@@ -1,6 +1,6 @@
 # Order Management API — Level 5 Engineer, [See Substack here](https://level5engineer.substack.com/p/the-level-5-engineer-the-map-i-didnt)
 
-_Repo up to date with Issue #4_
+_Repo up to date with Issue #5_
 
 ## WireMock + Gherkin BDD + Pact contract testing demo project
 
@@ -22,9 +22,13 @@ order-api/
 │       └── inventory-partial.json
 ├── tests/
 │   ├── features/
-│   │   └── order_creation.feature       # Gherkin scenarios (the spec)
+│   │   ├── order_creation.feature       # Gherkin scenarios (the spec)
+│   │   ├── order_status_bad.feature     # Deliberately bad specs (Issue #5)
+│   │   └── order_status_good.feature    # Rewritten good specs (Issue #5)
 │   ├── steps/
-│   │   └── test_order_creation.py       # pytest-bdd step definitions
+│   │   ├── test_order_creation.py       # pytest-bdd step definitions
+│   │   ├── test_order_status_bad.py     # Steps for bad spec (Issue #5)
+│   │   └── test_order_status_good.py    # Steps for good spec (Issue #5)
 │   └── pact/
 │       ├── test_payment_gateway_consumer.py   # Pact consumer tests (payment)
 │       ├── test_inventory_service_consumer.py # Pact consumer tests (inventory)
@@ -36,7 +40,8 @@ order-api/
 │   ├── README.md                        # Index of all findings by issue
 │   ├── issue-02-wiremock-gherkin.md     # Findings from Issue #2
 │   ├── issue-03-agent-fresh-implementation.md  # Findings from Issue #3
-│   └── issue-04-pact-contract-testing.md       # Findings from Issue #4
+│   ├── issue-04-pact-contract-testing.md       # Findings from Issue #4
+│   └── issue-05-the-spec-that-doesnt-lie.md    # Findings from Issue #5
 ├── CLAUDE.md                            # Agent standing orders
 └── pytest.ini
 ```
@@ -82,6 +87,33 @@ uvicorn app.main:app --port 8093
 3. Out of stock → `UNAVAILABLE` (409), payment gateway never called
 4. Partial availability → `PARTIAL_UNAVAILABLE` (207), no auto-confirm, payment never called
 5. Payment timeout → `PAYMENT_PENDING` (202), inventory held 15 mins, max 2 retry attempts
+
+### Issue #5 — The spec that doesn't lie
+
+Added `GET /orders/{order_id}/status` twice — once from a bad spec, once from a good
+one — to demonstrate that passing tests are a necessary condition for a good spec,
+not a sufficient one.
+
+The session runs in six phases: write bad Gherkin, implement from it, document the
+silent assumptions, rewrite the Gherkin properly, implement again from scratch, then
+cross-run each implementation against the other's test suite.
+
+The centrepiece finding is the field name divergence. The bad spec referenced `db_status`
+(a storage-layer name). The agent used it literally. The good spec specified `status`
+(the caller's concept). When the good implementation was run against the bad spec's
+tests, the `db_status` test failed — `KeyError: 'db_status'` — because the field name
+was never part of the observable contract; it was an implementation detail that leaked
+into the spec. The 404 body shape produced a similar divergence: the bad spec left it
+unspecified, so the agent chose FastAPI's default `{"detail": "..."}` structure; the
+good spec mandated `{"error": "..."}`, which is what a client actually checks.
+
+Both implementations passed their own test suites. Only cross-running revealed the gap.
+
+The two-spec pattern: write the scenario, then ask "does this describe what the caller
+sees, or what the implementation does?" If the answer is the implementation, rewrite it.
+
+See [`findings/issue-05-the-spec-that-doesnt-lie.md`](findings/issue-05-the-spec-that-doesnt-lie.md)
+for the full six-phase walkthrough including both implementations side by side.
 
 ### Issue #4 — Pact contract testing
 
