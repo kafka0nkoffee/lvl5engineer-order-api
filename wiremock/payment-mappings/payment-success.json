@@ -5,6 +5,6 @@
   },
   "response": {
     "status": 200,
-    "body": "{\"status\": \"ACCEPTED\", \"transaction_id\": \"txn-abc-123\", \"amount\": 134.97}"
+    "body": "{\"result\": \"ACCEPTED\", \"transaction_id\": \"txn-abc-123\", \"amount\": 134.97}"
   }
 }
