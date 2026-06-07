@@ -2,7 +2,7 @@
 
 ![CI](https://github.com/kafka0nkoffee/lvl5engineer-order-api/actions/workflows/ci.yml/badge.svg)
 
-_Repo up to date with Issue #7_
+_Repo up to date with Issue #8_
 
 ## WireMock + Gherkin BDD + Pact contract testing demo project
 
@@ -55,7 +55,10 @@ order-api/
 │   ├── issue-04-pact-contract-testing.md       # Findings from Issue #4
 │   ├── issue-05-the-spec-that-doesnt-lie.md    # Findings from Issue #5
 │   ├── issue-06-cicd-guardrails.md             # Findings from Issue #6
-│   └── issue-07-scope-problem.md               # Findings from Issue #7
+│   ├── issue-07-scope-problem.md               # Findings from Issue #7
+│   └── issue-08-spec-audit.md                  # Findings from Issue #8
+├── docs/
+│   └── spec-audit-framework.md          # Paid-tier deliverable: spec audit framework
 ├── CLAUDE.md                            # Agent standing orders
 └── pytest.ini
 ```
@@ -93,6 +96,24 @@ java -jar wiremock.jar --port 8091 --root-dir wiremock/payment-mappings
 java -jar wiremock.jar --port 8092 --root-dir wiremock/inventory-mappings
 uvicorn app.main:app --port 8093
 ```
+
+### Issue #8 — Spec audit: fixing debt and the framework
+
+Fixed all seven spec debt items identified in Issue #7. Each fix was applied individually with tests run after each change. The seven fixes:
+
+1. Timeout step anchored to client submission time: `"within 12 seconds of the order being submitted"`
+2. Retry count made unambiguous: `"no more than 2 charge requests total"` (verifies mock call count, not response body field)
+3. Inventory release step names the items explicitly: `"released for SHOE-RED-42 and BELT-BRN-M"`
+4. Removed `"no order is confirmed without explicit user action"` — the confirmation flow it implies does not exist; the step was passing trivially
+5. `order_status_bad.feature` timestamp step made explicit: `"the order_created_at timestamp is a non-empty string"`
+6. `order_status_good.feature` Given specifies mechanism: `"created via POST /orders and confirmed with..."`
+7. `notification_service.feature` notification_id checked for UUID format, not just presence — which caught a stub returning `"mock-notif-001"` (not a UUID) that had never been validated
+
+The session also produced `docs/spec-audit-framework.md` — a standalone tool for auditing any feature file. It includes five diagnostic questions, a six-class debt taxonomy (UNDERSPECIFIED, MIXED CONCERN, UNDEFINED TERM, AMBIGUOUS COUNT, IMPLICIT FLOW, LEAKY ABSTRACTION), a fix rubric for each class, and a scorecard template. The framework was applied to all four feature files after the fixes; two debt items remain, both LEAKY ABSTRACTION at the step definition level rather than the feature file level.
+
+The closing finding: in a project built carefully for eight issues, the residual debt density is 0.22 items per scenario — and both remaining items are documented gaps, not silent ones. The key distinction between manageable and dangerous spec debt is not quantity but visibility.
+
+See [`findings/issue-08-spec-audit.md`](findings/issue-08-spec-audit.md) and [`docs/spec-audit-framework.md`](docs/spec-audit-framework.md).
 
 ### The 5 Gherkin scenarios
 
