@@ -52,3 +52,4 @@ Feature: Order Creation
     And the inventory is held for 15 minutes
     And the user is informed that payment confirmation is in progress
     And the payment gateway is not retried more than 2 times
+

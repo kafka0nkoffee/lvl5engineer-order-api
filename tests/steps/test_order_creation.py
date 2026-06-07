@@ -1,46 +1,20 @@
-import time, threading, pytest, requests, os, sys
+import time, pytest, requests, os, sys, json
 from pytest_bdd import scenarios, given, when, then, parsers
+
 PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 sys.path.insert(0, PROJECT_ROOT)
-from mock_server import start_mock_server
 
 scenarios("../features/order_creation.feature")
 
-PAYMENT_PORT   = 8091
-INVENTORY_PORT = 8092
-API_PORT       = 8093
+API_PORT = 8093
 
-payment_log   = None
-inventory_log = None
 
-@pytest.fixture(scope="session", autouse=True)
-def start_servers():
-    global payment_log, inventory_log
-    import os, uvicorn
-    _, payment_log   = start_mock_server(PAYMENT_PORT,   os.path.join(PROJECT_ROOT, "wiremock/payment-mappings"))
-    _, inventory_log = start_mock_server(INVENTORY_PORT, os.path.join(PROJECT_ROOT, "wiremock/inventory-mappings"))
-
-    os.environ["PAYMENT_URL"]             = f"http://localhost:{PAYMENT_PORT}"
-    os.environ["INVENTORY_URL"]           = f"http://localhost:{INVENTORY_PORT}"
-    os.environ["PAYMENT_TIMEOUT_SECONDS"] = "5"
-    os.environ["MAX_PAYMENT_RETRIES"]     = "2"
-
-    from app.main import app
-    config = uvicorn.Config(app, host="127.0.0.1", port=API_PORT, log_level="error")
-    server = uvicorn.Server(config)
-    threading.Thread(target=server.run, daemon=True).start()
-    time.sleep(1.5)
-    yield
-    server.should_exit = True
-
-@pytest.fixture(autouse=True)
-def reset_logs():
-    yield
-    payment_log.reset()
-    inventory_log.reset()
 
 @pytest.fixture
-def payment_scenario(): return "success"   # default — overridden by specific Given steps
+def payment_scenario(): return "success"
+
+@pytest.fixture
+def notification_scenario(): return "success"
 
 # ── Given ─────────────────────────────────────────────────────────────────────
 
@@ -66,24 +40,31 @@ def inv_partial(): return "partial"
 @given("the payment gateway will not respond within the timeout window", target_fixture="payment_scenario")
 def pay_timeout(): return "timeout"
 
+@given("the notification service is available", target_fixture="notification_scenario")
+def notif_available(): return "success"
+
+@given("the notification service is unavailable", target_fixture="notification_scenario")
+def notif_unavailable(): return "unavailable"
+
 # ── When ──────────────────────────────────────────────────────────────────────
 
-def _post_order(user_id, payment_scenario, inventory_scenario, skus):
+def _post_order(user_id, payment_scenario, inventory_scenario, skus, notification_scenario="success"):
     t0 = time.time()
     items = [{"sku": s, "quantity": 1, "unit_price": 89.99 if "SHOE" in s else 44.98} for s in skus]
     r = requests.post(f"http://localhost:{API_PORT}/orders",
                       json={"user_id": user_id, "items": items,
                             "payment_scenario": payment_scenario,
-                            "inventory_scenario": inventory_scenario}, timeout=20)
+                            "inventory_scenario": inventory_scenario,
+                            "notification_scenario": notification_scenario}, timeout=20)
     return {"response": r, "elapsed": time.time() - t0}
 
 @when("the user submits an order for SHOE-RED-42 and BELT-BRN-M", target_fixture="response")
-def submit_two(user_id, payment_scenario, inventory_scenario):
-    return _post_order(user_id, payment_scenario, inventory_scenario, ["SHOE-RED-42", "BELT-BRN-M"])
+def submit_two(user_id, payment_scenario, inventory_scenario, notification_scenario):
+    return _post_order(user_id, payment_scenario, inventory_scenario, ["SHOE-RED-42", "BELT-BRN-M"], notification_scenario)
 
 @when("the user submits an order for SHOE-RED-42", target_fixture="response")
-def submit_one(user_id, payment_scenario, inventory_scenario):
-    return _post_order(user_id, payment_scenario, inventory_scenario, ["SHOE-RED-42"])
+def submit_one(user_id, payment_scenario, inventory_scenario, notification_scenario):
+    return _post_order(user_id, payment_scenario, inventory_scenario, ["SHOE-RED-42"], notification_scenario)
 
 # ── Then ──────────────────────────────────────────────────────────────────────
 
@@ -118,19 +99,19 @@ def inv_released(response):
     assert b.get("inventory_released") is True, f"Expected inventory_released=True: {b}"
 
 @then("the payment gateway received exactly one charge request")
-def payment_called_once():
-    calls = payment_log.all()
+def payment_called_once(payment_log_shared):
+    calls = payment_log_shared.all()
     pay_calls = [c for c in calls if c["path"].startswith("/payments/")]
     assert len(pay_calls) == 1, f"Expected 1 payment call, got {len(pay_calls)}: {calls}"
 
 @then("the inventory service received a reservation request")
-def inventory_called():
-    calls = inventory_log.all()
+def inventory_called(inventory_log_shared):
+    calls = inventory_log_shared.all()
     assert calls, f"Expected inventory to be called, got: {calls}"
 
 @then("the payment gateway is never called")
-def payment_not_called():
-    calls = payment_log.all()
+def payment_not_called(payment_log_shared):
+    calls = payment_log_shared.all()
     assert not calls, f"Expected no payment calls, got: {calls}"
 
 @then("the response identifies SHOE-RED-42 as unavailable")
@@ -174,3 +155,24 @@ def pending_message(response):
 def retry_cap(response):
     b = response["response"].json()
     assert b.get("retry_count", 0) <= 2, f"Too many retries: {b}"
+
+@then("the notification service receives a confirmation request")
+def notif_called(response, notification_log_shared):
+    time.sleep(0.3)
+    calls = notification_log_shared.any_calls_matching("/notifications/order-confirmed")
+    assert calls, f"Expected notification call, got: {notification_log_shared.all()}"
+
+@then("the notification contains the correct order id and total")
+def notif_correct_fields(response, notification_log_shared):
+    calls = notification_log_shared.any_calls_matching("/notifications/order-confirmed")
+    assert calls, "No notification calls recorded"
+    body = json.loads(calls[0]["body"])
+    order_id = response["response"].json().get("order_id")
+    assert body.get("order_id") == order_id, f"order_id mismatch: {body}"
+    assert body.get("total") == pytest.approx(134.97, abs=0.01), f"total mismatch: {body}"
+
+@then("the notification service is not retried")
+def notif_not_retried(notification_log_shared):
+    time.sleep(0.3)
+    calls = notification_log_shared.all()
+    assert len(calls) <= 1, f"Expected at most 1 notification call, got {len(calls)}: {calls}"
