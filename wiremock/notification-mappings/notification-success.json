@@ -1,0 +1,13 @@
+{
+  "request": {
+    "method": "POST",
+    "url": "/notifications/order-confirmed"
+  },
+  "response": {
+    "status": 200,
+    "body": {
+      "notification_id": "mock-notif-001",
+      "status": "QUEUED"
+    }
+  }
+}

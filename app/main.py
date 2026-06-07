@@ -1,4 +1,4 @@
-import os, uuid
+import os, uuid, threading
 from datetime import datetime
 import httpx
 from fastapi import FastAPI, HTTPException
@@ -23,6 +23,25 @@ class OrderRequest(BaseModel):
     items: List[OrderItem]
     payment_scenario: str = "success"
     inventory_scenario: str = "all-available"
+    notification_scenario: str = "success"
+
+
+def _fire_notification(user_id: str, order_id: str, total: float, scenario: str = "success"):
+    # Fire-and-forget: notification failure must never affect order confirmation.
+    notification_url = os.environ.get("NOTIFICATION_URL", "http://localhost:8094")
+    path = "/notifications/order-confirmed" if scenario == "success" else f"/notifications/order-confirmed-{scenario}"
+
+    def _send():
+        try:
+            httpx.post(
+                f"{notification_url}{path}",
+                json={"order_id": order_id, "user_id": user_id, "total": total},
+                timeout=3.0,
+            )
+        except Exception:
+            pass
+
+    threading.Thread(target=_send, daemon=True).start()
 
 
 @app.post("/orders")
@@ -79,6 +98,8 @@ def create_order(req: OrderRequest):
                     "db_status": "CONFIRMED",
                     "order_created_at": datetime.utcnow().isoformat(),
                 }
+                total = sum(i.unit_price * i.quantity for i in req.items)
+                _fire_notification(req.user_id, order_id, total, req.notification_scenario)
                 return {
                     "status": "CONFIRMED",
                     "order_id": order_id,

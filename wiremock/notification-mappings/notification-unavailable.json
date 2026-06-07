@@ -1,0 +1,12 @@
+{
+  "request": {
+    "method": "POST",
+    "url": "/notifications/order-confirmed-unavailable"
+  },
+  "response": {
+    "status": 503,
+    "body": {
+      "error": "Service Unavailable"
+    }
+  }
+}
