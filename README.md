@@ -2,7 +2,7 @@
 
 ![CI](https://github.com/kafka0nkoffee/lvl5engineer-order-api/actions/workflows/ci.yml/badge.svg)
 
-_Repo up to date with Issue #6_
+_Repo up to date with Issue #7_
 
 ## WireMock + Gherkin BDD + Pact contract testing demo project
 
@@ -11,26 +11,33 @@ _Repo up to date with Issue #6_
 ```
 order-api/
 ├── app/
-│   └── main.py                          # FastAPI order service
+│   ├── main.py                          # FastAPI order service
+│   └── notification_service.py          # Notification endpoint (Issue #7)
 ├── mock_server.py                       # WireMock-compatible mock server
 ├── wiremock/
 │   ├── payment-mappings/                # Stub definitions for payment gateway
 │   │   ├── payment-success.json
 │   │   ├── payment-declined.json
 │   │   └── payment-timeout.json
-│   └── inventory-mappings/              # Stub definitions for inventory service
-│       ├── inventory-all-available.json
-│       ├── inventory-out-of-stock.json
-│       └── inventory-partial.json
+│   ├── inventory-mappings/              # Stub definitions for inventory service
+│   │   ├── inventory-all-available.json
+│   │   ├── inventory-out-of-stock.json
+│   │   └── inventory-partial.json
+│   └── notification-mappings/           # Stub definitions for notification service (Issue #7)
+│       ├── notification-success.json
+│       └── notification-unavailable.json
 ├── tests/
 │   ├── features/
-│   │   ├── order_creation.feature       # Gherkin scenarios (the spec)
+│   │   ├── order_creation.feature       # Gherkin scenarios — order creation only
 │   │   ├── order_status_bad.feature     # Deliberately bad specs (Issue #5)
-│   │   └── order_status_good.feature    # Rewritten good specs (Issue #5)
+│   │   ├── order_status_good.feature    # Rewritten good specs (Issue #5)
+│   │   └── notification_service.feature # Bounded notification spec (Issue #7)
 │   ├── steps/
+│   │   ├── conftest.py                  # Shared session-scoped server fixtures
 │   │   ├── test_order_creation.py       # pytest-bdd step definitions
 │   │   ├── test_order_status_bad.py     # Steps for bad spec (Issue #5)
-│   │   └── test_order_status_good.py    # Steps for good spec (Issue #5)
+│   │   ├── test_order_status_good.py    # Steps for good spec (Issue #5)
+│   │   └── test_notification_service.py # Steps for notification spec (Issue #7)
 │   └── pact/
 │       ├── test_payment_gateway_consumer.py   # Pact consumer tests (payment)
 │       ├── test_inventory_service_consumer.py # Pact consumer tests (inventory)
@@ -47,7 +54,8 @@ order-api/
 │   ├── issue-03-agent-fresh-implementation.md  # Findings from Issue #3
 │   ├── issue-04-pact-contract-testing.md       # Findings from Issue #4
 │   ├── issue-05-the-spec-that-doesnt-lie.md    # Findings from Issue #5
-│   └── issue-06-cicd-guardrails.md             # Findings from Issue #6
+│   ├── issue-06-cicd-guardrails.md             # Findings from Issue #6
+│   └── issue-07-scope-problem.md               # Findings from Issue #7
 ├── CLAUDE.md                            # Agent standing orders
 └── pytest.ini
 ```
@@ -93,6 +101,18 @@ uvicorn app.main:app --port 8093
 3. Out of stock → `UNAVAILABLE` (409), payment gateway never called
 4. Partial availability → `PARTIAL_UNAVAILABLE` (207), no auto-confirm, payment never called
 5. Payment timeout → `PAYMENT_PENDING` (202), inventory held 15 mins, max 2 retry attempts
+
+### Issue #7 — The scope problem: spec files at service boundaries
+
+Added a minimal notification service (`app/notification_service.py`, `POST /notifications/order-confirmed`) and wired the order service to call it after a confirmed payment — fire-and-forget, so notification failure never blocks order confirmation. Then deliberately demonstrated what goes wrong when notification scenarios are added to `order_creation.feature`, documented the four structural problems that emerge (mixed ownership, growing file, agent routing confusion, spec debt seed), and fixed them by creating a bounded `notification_service.feature`.
+
+The session includes a full spec debt audit across all four feature files. Seven specific debt items are named and documented — not fixed, because the point is to show that spec debt forms in passing tests. The most striking item: `"the payment gateway is not retried more than 2 times"` is genuinely ambiguous about whether "2 times" means 2 total requests or 1 attempt + 2 retries. It has been in the codebase since Issue #2. It has passed every run. Every agent that reimplements from that step will resolve the ambiguity differently.
+
+The session also surfaced a real infrastructure problem: when running `pytest tests/steps/` across multiple step files in the same process, each file's session fixture tried to bind the same ports. Fixed by moving server startup to `tests/steps/conftest.py` as shared session-scoped fixtures — a pattern that generalises cleanly as the test surface grows.
+
+Final state: 11 Gherkin tests passing, 4 Pact tests passing, all contracts verified.
+
+See [`findings/issue-07-scope-problem.md`](findings/issue-07-scope-problem.md) for the full session, including the spec debt audit.
 
 ### Issue #6 — CI/CD guardrails
 
