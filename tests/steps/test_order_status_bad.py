@@ -58,13 +58,9 @@ def check_db_status(expected):
     assert body["db_status"] == expected
 
 
-@then("the order_created_at timestamp should be populated from the order record")
+@then("the order_created_at timestamp is a non-empty string")
 def check_created_at():
     body = _response["result"].json()
-    assert "order_created_at" in body
-    assert body["order_created_at"] is not None
-    # The spec says "populated from the order record" — we verify it is non-empty.
-    # The spec does NOT say what format it should be in. ISO 8601? Unix timestamp?
-    # We assume string. This is another silent assumption.
-    assert isinstance(body["order_created_at"], str)
-    assert len(body["order_created_at"]) > 0
+    assert "order_created_at" in body, f"Field 'order_created_at' not found: {body}"
+    assert isinstance(body["order_created_at"], str), f"Expected string, got: {type(body['order_created_at'])}"
+    assert len(body["order_created_at"]) > 0, "order_created_at is empty"

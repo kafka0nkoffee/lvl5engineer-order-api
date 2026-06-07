@@ -71,10 +71,14 @@ def submit_two_notif(user_id, payment_scenario, inventory_scenario, notification
 def notif_status_code(notif_response, code):
     assert notif_response.status_code == code, f"Expected {code}, got {notif_response.status_code}"
 
-@then("the response body contains a notification_id")
+@then("the response body contains a notification_id in UUID format")
 def notif_has_id(notif_response):
+    import re
     body = notif_response.json()
-    assert body.get("notification_id"), f"No notification_id in: {body}"
+    nid = body.get("notification_id", "")
+    assert nid, f"No notification_id in: {body}"
+    uuid_pattern = r"^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+    assert re.match(uuid_pattern, nid, re.IGNORECASE), f"notification_id '{nid}' is not a valid UUID"
 
 @then(parsers.parse('the response body contains status "{expected}"'))
 def notif_has_status(notif_response, expected):

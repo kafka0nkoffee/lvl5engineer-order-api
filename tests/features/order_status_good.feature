@@ -48,7 +48,7 @@
 Feature: Order status retrieval (good specs — behavioural contract)
 
   Scenario: Confirmed order status returns status and timestamp
-    Given an order was successfully placed and confirmed with order ID "aaa00000-0000-0000-0000-000000000001"
+    Given an order was created via POST /orders and confirmed with order ID "aaa00000-0000-0000-0000-000000000001"
     When a client requests the status of order "aaa00000-0000-0000-0000-000000000001"
     Then the response HTTP status is 200
     And the response body contains a "status" field with value "CONFIRMED"

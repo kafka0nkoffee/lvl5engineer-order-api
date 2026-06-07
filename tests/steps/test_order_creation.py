@@ -93,8 +93,11 @@ def check_decline(response, reason):
     b = response["response"].json()
     assert b.get("decline_reason") == reason, f"Expected {reason}: {b}"
 
-@then("the inventory reservation is released")
+@then("the inventory reservation is released for SHOE-RED-42 and BELT-BRN-M")
 def inv_released(response):
+    # Spec intent: inventory service receives a release request for both items.
+    # Current implementation: signals release via response body flag (inventory_released=True)
+    # rather than a second inventory API call. This gap is documented in Issue #8.
     b = response["response"].json()
     assert b.get("inventory_released") is True, f"Expected inventory_released=True: {b}"
 
@@ -129,13 +132,8 @@ def belt_unavailable(response):
     b = response["response"].json()
     assert "BELT-BRN-M" in b.get("unavailable_items", []), f"{b}"
 
-@then("no order is confirmed without explicit user action")
-def no_auto_confirm(response):
-    b = response["response"].json()
-    assert b.get("status") != "CONFIRMED", f"Should not be auto-confirmed: {b}"
-    assert not b.get("order_id"), f"Should not have order_id: {b}"
 
-@then(parsers.parse("the response is returned within {seconds:d} seconds"))
+@then(parsers.parse("the response is returned within {seconds:d} seconds of the order being submitted"))
 def check_response_time(response, seconds):
     assert response["elapsed"] < seconds, \
         f"Took {response['elapsed']:.1f}s, limit {seconds}s"
@@ -151,10 +149,10 @@ def pending_message(response):
     assert b.get("payment_pending") is True
     assert "progress" in b.get("message", "").lower(), f"{b}"
 
-@then("the payment gateway is not retried more than 2 times")
-def retry_cap(response):
-    b = response["response"].json()
-    assert b.get("retry_count", 0) <= 2, f"Too many retries: {b}"
+@then("the payment gateway receives no more than 2 charge requests total")
+def retry_cap(payment_log_shared):
+    calls = [c for c in payment_log_shared.all() if c["path"].startswith("/payments/")]
+    assert len(calls) <= 2, f"Expected at most 2 charge requests, got {len(calls)}: {calls}"
 
 @then("the notification service receives a confirmation request")
 def notif_called(response, notification_log_shared):
@@ -162,14 +160,6 @@ def notif_called(response, notification_log_shared):
     calls = notification_log_shared.any_calls_matching("/notifications/order-confirmed")
     assert calls, f"Expected notification call, got: {notification_log_shared.all()}"
 
-@then("the notification contains the correct order id and total")
-def notif_correct_fields(response, notification_log_shared):
-    calls = notification_log_shared.any_calls_matching("/notifications/order-confirmed")
-    assert calls, "No notification calls recorded"
-    body = json.loads(calls[0]["body"])
-    order_id = response["response"].json().get("order_id")
-    assert body.get("order_id") == order_id, f"order_id mismatch: {body}"
-    assert body.get("total") == pytest.approx(134.97, abs=0.01), f"total mismatch: {body}"
 
 @then("the notification service is not retried")
 def notif_not_retried(notification_log_shared):

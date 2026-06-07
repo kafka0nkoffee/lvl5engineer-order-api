@@ -63,7 +63,7 @@ Feature: Order status retrieval (bad specs — for newsletter demonstration)
     When the client calls GET /orders/{order_id}/status
     Then the response status code should be 200
     And the response should contain the db_status field set to "CONFIRMED"
-    And the order_created_at timestamp should be populated from the order record
+    And the order_created_at timestamp is a non-empty string
 
   Scenario: Retrieving status for an order that does not exist
     Given an order that has not been placed

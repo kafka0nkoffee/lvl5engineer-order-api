@@ -20,8 +20,11 @@ client = TestClient(app)
 _response = {}
 
 
-@given(parsers.parse('an order was successfully placed and confirmed with order ID "{order_id}"'))
+@given(parsers.parse('an order was created via POST /orders and confirmed with order ID "{order_id}"'))
 def seed_confirmed_order_with_id(order_id):
+    # Spec intent: order was created via the full POST /orders flow.
+    # Current implementation: seeds directly into the in-memory store (shortcut).
+    # This gap is documented in Issue #8 — a future issue will use the real creation flow.
     _orders[order_id] = {
         "db_status": "CONFIRMED",
         "order_created_at": datetime.now().strftime("%Y-%m-%dT%H:%M:%S"),

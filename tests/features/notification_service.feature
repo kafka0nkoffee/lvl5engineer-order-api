@@ -4,7 +4,7 @@ Feature: Notification Service
     Given the notification service is healthy
     When the order service sends a confirmed order notification for order "order-abc-123" with total 134.97 for user "user-123"
     Then the notification service returns status 200
-    And the response body contains a notification_id
+    And the response body contains a notification_id in UUID format
     And the response body contains status "QUEUED"
 
   Scenario: Order confirmation is unaffected when notification service returns 503
