@@ -1,4 +1,4 @@
-# Order Management API — Level 5 Engineer, [See Substack here](https://level5engineer.substack.com/p/the-level-5-engineer-the-map-i-didnt)
+# Order Management API — Level 5 Engineer, [See Substack here](https://level5engineer.substack.com/)
 
 ![CI](https://github.com/kafka0nkoffee/lvl5engineer-order-api/actions/workflows/ci.yml/badge.svg)
 
@@ -203,9 +203,9 @@ The centrepiece of this session is a deliberate breaking change experiment:
    The breaking change was invisible to WireMock-based tests.
 5. Reverted the change; verification went green again.
 
-The finding: WireMock tests verify that your code *behaves correctly given the stub
-you wrote*. Pact verification proves that the stub *matches what the real service
-actually returns*. Only the second check catches provider-side drift before production.
+The finding: WireMock tests verify that your code _behaves correctly given the stub
+you wrote_. Pact verification proves that the stub _matches what the real service
+actually returns_. Only the second check catches provider-side drift before production.
 
 See [`findings/issue-04-pact-contract-testing.md`](findings/issue-04-pact-contract-testing.md)
 for full terminal output from each step.
