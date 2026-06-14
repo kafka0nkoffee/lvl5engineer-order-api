@@ -1,0 +1,167 @@
+COMMANDS RUN DURING ISSUE #9 SESSION — AND HOW TO ALLOW THEM WITHOUT PROMPTS
+==============================================================================
+
+The following commands required explicit permission from you during this session.
+Each entry shows: the command, why it needed permission, and the risk level.
+
+---
+
+COMMANDS THAT REQUIRED PERMISSION
+
+1. find . -type f | grep -v ...
+   Why prompted: reads the entire directory tree
+   Risk: read-only, zero impact on machine state
+   Category: READ — safe to allow globally
+
+2. cat [file] / grep [pattern] [file]
+   Why prompted: reads file contents
+   Risk: read-only, zero impact on machine state
+   Category: READ — safe to allow globally
+
+3. ls [directory]
+   Why prompted: lists directory contents
+   Risk: read-only, zero impact on machine state
+   Category: READ — safe to allow globally
+
+4. mkdir docs/prompts docs/skills
+   Why prompted: creates new directories
+   Risk: creates directories (easily reversed with rmdir), no data loss possible
+   Category: SAFE WRITE — safe to allow globally
+
+5. python3 -m pytest tests/steps/ tests/pact/ -v
+   Why prompted: runs the test suite (starts servers, makes HTTP calls on localhost)
+   Risk: starts local servers on ports 8091-8094, no external network calls, all local
+   Category: LOCAL TEST — safe to allow for this project
+
+6. python3 scripts/can_i_deploy.py
+   Why prompted: runs a Python script
+   Risk: reads pact files, prints output, no external calls, no file writes
+   Category: LOCAL SCRIPT — safe to allow for this project
+
+7. git log / git status / git diff / git stash list / git show
+   Why prompted: reads git history
+   Risk: read-only git operations, zero impact
+   Category: READ — safe to allow globally
+
+8. which python3
+   Why prompted: queries shell PATH
+   Risk: read-only, zero impact
+   Category: READ — safe to allow globally
+
+9. python3 -c "..." (inline Python snippets)
+   Why prompted: runs arbitrary Python code
+   Risk: depends on the snippet — the ones in this session were all read-only
+   Category: CONTEXT-DEPENDENT — allow read-only patterns, review others
+
+10. sed -n '385,400p' /opt/homebrew/lib/python3.14/site-packages/pytest_bdd/scenario.py
+    Why prompted: reads a system Python file
+    Risk: read-only
+    Category: READ — safe to allow globally
+
+11. grep -rn "..." /opt/homebrew/lib/python3.14/site-packages/pytest_bdd/
+    Why prompted: searches system packages directory
+    Risk: read-only
+    Category: READ — safe to allow globally
+
+---
+
+COMMANDS THAT WOULD REQUIRE PERMISSION BUT WERE NOT NEEDED THIS SESSION
+(included for completeness — common in other sessions)
+
+- pip install ...          → installs packages (LOW risk, easily reversed)
+- git commit ...           → creates a commit (MEDIUM risk — alters history)
+- git push ...             → pushes to remote (HIGH risk — affects shared state)
+- rm / rmdir               → deletes files (HIGH risk — may not be recoverable)
+- git reset --hard         → destructive history rewrite (HIGH risk)
+- kill / pkill             → terminates processes (MEDIUM risk)
+- chmod / chown            → changes permissions (MEDIUM risk)
+
+---
+
+HOW TO ENABLE 99% OF COMMANDS WITHOUT PROMPTING
+
+Claude Code uses a settings.json file to grant permissions. There are two levels:
+  - Global:  ~/.claude/settings.json  (applies to all projects)
+  - Project: .claude/settings.json    (applies to this project only)
+
+The safest approach: allow read-only operations globally, and allow project-specific
+test/script operations at the project level.
+
+--- GLOBAL SETTINGS (~/.claude/settings.json) ---
+
+Add these to allow all read-only shell operations without prompting:
+
+{
+  "permissions": {
+    "allow": [
+      "Bash(find:*)",
+      "Bash(ls:*)",
+      "Bash(cat:*)",
+      "Bash(grep:*)",
+      "Bash(which:*)",
+      "Bash(echo:*)",
+      "Bash(python3 -c *)",
+      "Bash(python3 -m pytest*)",
+      "Bash(git log*)",
+      "Bash(git status*)",
+      "Bash(git diff*)",
+      "Bash(git show*)",
+      "Bash(git stash list*)",
+      "Bash(sed -n *)",
+      "Bash(head *)",
+      "Bash(tail *)",
+      "Bash(wc *)",
+      "Bash(sort *)",
+      "Bash(uniq *)"
+    ]
+  }
+}
+
+--- PROJECT SETTINGS (.claude/settings.json) ---
+
+Add these to allow project-specific operations without prompting:
+
+{
+  "permissions": {
+    "allow": [
+      "Bash(python3 -m pytest*)",
+      "Bash(python3 scripts/*)",
+      "Bash(.venv/bin/python3*)",
+      "Bash(mkdir *)",
+      "Bash(pip install*)"
+    ]
+  }
+}
+
+--- WHAT TO KEEP REQUIRING PERMISSION ---
+
+Even with the above in place, the following should always require your explicit
+approval. These are the operations that can damage local state, affect shared
+systems, or cannot be easily reversed:
+
+  - git commit       → alters history
+  - git push         → affects shared remote
+  - git reset --hard → potentially destructive
+  - git branch -D    → deletes branches
+  - rm / rmdir       → deletes files permanently (on macOS without .Trash recovery)
+  - kill / pkill     → terminates running processes
+  - chmod / chown    → changes file permissions
+  - Any command writing to paths outside the project root
+  - Any command making real HTTP calls to external services (curl to non-localhost)
+  - pip install [new package] (adding NEW packages — updating existing is lower risk)
+
+--- QUICKEST WAY TO SET THIS UP ---
+
+In a Claude Code session, type:
+
+  /allow Bash(find:*), Bash(ls:*), Bash(grep:*), Bash(git log*), Bash(git status*)
+
+Or run the update-config skill to configure settings.json with your preferences.
+
+The goal is: Claude can read anything, run tests, run project scripts, and create
+directories — but cannot commit, push, delete, or call external services without
+your explicit approval.
+
+---
+
+Generated: 2026-06-13, Issue #9 session

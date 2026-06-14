@@ -28,6 +28,7 @@ A FastAPI order management service, built entirely from Gherkin specs by Claude 
 - **Bounded service specs** — notification service isolated in its own feature file
 - **Four-job GitHub Actions CI/CD pipeline**: Gherkin → Pact consumer → Pact provider → can-i-deploy
 - **Spec audit framework** — a reusable tool for diagnosing and classifying spec debt
+- **Skills infrastructure** — structured skills with output contracts that replace ad-hoc prompts
 
 The five Gherkin scenarios:
 
@@ -102,9 +103,14 @@ order-api/
 │   ├── issue-05-the-spec-that-doesnt-lie.md
 │   ├── issue-06-cicd-guardrails.md
 │   ├── issue-07-scope-problem.md
-│   └── issue-08-spec-audit.md
+│   ├── issue-08-spec-audit.md
+│   └── issue-09-skills-infrastructure.md
 ├── docs/
-│   └── spec-audit-framework.md          # Reusable spec audit framework (Issue #8)
+│   ├── spec-audit-framework.md          # Reusable spec audit framework (Issue #8)
+│   ├── prompts/
+│   │   └── prompt-gherkin-scenario-quality.md  # Raw prompt (before state, Issue #9)
+│   └── skills/
+│       └── gherkin-scenario-quality.md  # Structured skill (after state, Issue #9)
 ├── CLAUDE.md                            # Agent standing orders
 └── pytest.ini
 ```
@@ -158,6 +164,7 @@ Each newsletter issue has a corresponding findings file documenting what the age
 | [#6 — CI/CD guardrails](findings/issue-06-cicd-guardrails.md)                      | Four-job GitHub Actions pipeline                             | Deliberate breaking change test: Gherkin passed, Pact caught the drift. That's the whole point of having both.                                                                                    |
 | [#7 — The scope problem](findings/issue-07-scope-problem.md)                       | Notification service; bounded feature files; spec debt audit | Mixing two services' scenarios in one file creates four structural problems. Seven spec debt items named and documented.                                                                          |
 | [#8 — Spec audit](findings/issue-08-spec-audit.md)                                 | Fixed all 7 debt items; produced reusable audit framework    | Six-class debt taxonomy (UNDERSPECIFIED, MIXED CONCERN, UNDEFINED TERM, AMBIGUOUS COUNT, IMPLICIT FLOW, LEAKY ABSTRACTION). Residual debt: 0.22 items/scenario — both documented, neither silent. |
+| [#9 — Skills infrastructure](findings/issue-09-skills-infrastructure.md)           | Converted best reused prompt into a structured skill         | Same input, prompt version → 6 implicit decisions; skill version → 2 (both surfaced explicitly). The prompt produces output that passes today's tests; the skill produces output a different agent can implement tomorrow without making decisions you didn't make. |
 
 ---
 
@@ -174,6 +181,19 @@ Produced during Issue #8 and applied immediately to all four feature files in th
 
 ---
 
+## Skills — encoding judgment for agents
+
+Issue #9 introduced the `docs/skills/` directory: structured artifacts that encode judgment into a format agents can route to consistently.
+
+A skill differs from a prompt in three ways:
+1. **Version control** — a skill lives in git, has a version history, and can be diffed. A prompt has no equivalent.
+2. **Output contract** — a skill specifies exactly what the output must contain and what it must not. A prompt implies a format but never guarantees one.
+3. **Routing signal** — a skill's description line is designed to route correctly. A prompt has no routing signal — the human must remember to use it.
+
+`docs/skills/gherkin-scenario-quality.md` is the first skill. The "before" state (the raw prompt) is preserved at `docs/prompts/prompt-gherkin-scenario-quality.md`.
+
+---
+
 ## Newsletter
 
 **[The Level 5 Engineer](https://level5engineer.substack.com/)** — free, 22 issues planned across five layers: Specification (Issues 1–8, complete), Skills, Stewardship, and Synthesis.
@@ -182,4 +202,4 @@ If you found the repo useful, the newsletter is where the full context lives —
 
 ---
 
-_Repo current as of Issue #8._
+_Repo current as of Issue #9._
