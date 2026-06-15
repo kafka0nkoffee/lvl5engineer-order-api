@@ -94,6 +94,20 @@ All 5 scenarios must pass before any work is considered complete.
 
 ---
 
+## Skills
+
+This project uses a 3-tier skill architecture. Read the relevant skill before producing output in its domain.
+
+| Tier | Skill | When to use |
+|------|-------|-------------|
+| 1 | `docs/skills/tier1/output-formatting-standard.md` | All formatting decisions: findings file structure, commit message format, code snippet conventions, Gherkin indentation |
+| 2 | `docs/skills/tier2/gherkin-scenario-quality.md` | Writing or reviewing Gherkin scenarios — quality evaluation and output contract |
+| 3 | `docs/skills/tier3/why-this-matters-writing.md` | Writing the "Why this matters" paragraph in findings entries |
+
+For all formatting decisions, the Tier 1 skill takes precedence over the prose instructions below.
+
+---
+
 ## Documentation protocol — findings/
 
 This is the most important instruction in this file.

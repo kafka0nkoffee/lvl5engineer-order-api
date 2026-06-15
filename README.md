@@ -28,7 +28,7 @@ A FastAPI order management service, built entirely from Gherkin specs by Claude 
 - **Bounded service specs** — notification service isolated in its own feature file
 - **Four-job GitHub Actions CI/CD pipeline**: Gherkin → Pact consumer → Pact provider → can-i-deploy
 - **Spec audit framework** — a reusable tool for diagnosing and classifying spec debt
-- **Skills infrastructure** — structured skills with output contracts that replace ad-hoc prompts
+- **Skills infrastructure** — 3-tier skill architecture (org-wide, domain, personal) with output contracts
 
 The five Gherkin scenarios:
 
@@ -110,7 +110,12 @@ order-api/
 │   ├── prompts/
 │   │   └── prompt-gherkin-scenario-quality.md  # Raw prompt (before state, Issue #9)
 │   └── skills/
-│       └── gherkin-scenario-quality.md  # Structured skill (after state, Issue #9)
+│       ├── tier1/
+│       │   └── output-formatting-standard.md   # Org-wide formatting standard (Issue #10)
+│       ├── tier2/
+│       │   └── gherkin-scenario-quality.md     # Domain skill: Gherkin quality (Issue #9, moved #10)
+│       └── tier3/
+│           └── why-this-matters-writing.md     # Personal workflow: findings paragraphs (Issue #10)
 ├── CLAUDE.md                            # Agent standing orders
 └── pytest.ini
 ```
@@ -165,6 +170,7 @@ Each newsletter issue has a corresponding findings file documenting what the age
 | [#7 — The scope problem](findings/issue-07-scope-problem.md)                       | Notification service; bounded feature files; spec debt audit | Mixing two services' scenarios in one file creates four structural problems. Seven spec debt items named and documented.                                                                          |
 | [#8 — Spec audit](findings/issue-08-spec-audit.md)                                 | Fixed all 7 debt items; produced reusable audit framework    | Six-class debt taxonomy (UNDERSPECIFIED, MIXED CONCERN, UNDEFINED TERM, AMBIGUOUS COUNT, IMPLICIT FLOW, LEAKY ABSTRACTION). Residual debt: 0.22 items/scenario — both documented, neither silent. |
 | [#9 — Skills infrastructure](findings/issue-09-skills-infrastructure.md)           | Converted best reused prompt into a structured skill         | Same input, prompt version → 6 implicit decisions; skill version → 2 (both surfaced explicitly). The prompt produces output that passes today's tests; the skill produces output a different agent can implement tomorrow without making decisions you didn't make. |
+| [#10 — 3-tier architecture](findings/issue-10-three-tier-architecture.md)          | Mapped project to 3-tier model; built skills at all three tiers | The most dangerous institutional knowledge looks like a standard — it produces consistent output — but only because the person holding the pattern hasn't left yet. A Tier 3 skill that should be Tier 2 is invisible until the session that exposes it. |
 
 ---
 
@@ -183,14 +189,17 @@ Produced during Issue #8 and applied immediately to all four feature files in th
 
 ## Skills — encoding judgment for agents
 
-Issue #9 introduced the `docs/skills/` directory: structured artifacts that encode judgment into a format agents can route to consistently.
+Issue #9 introduced the `docs/skills/` directory. Issue #10 organized it into a 3-tier architecture.
 
-A skill differs from a prompt in three ways:
-1. **Version control** — a skill lives in git, has a version history, and can be diffed. A prompt has no equivalent.
-2. **Output contract** — a skill specifies exactly what the output must contain and what it must not. A prompt implies a format but never guarantees one.
-3. **Routing signal** — a skill's description line is designed to route correctly. A prompt has no routing signal — the human must remember to use it.
+**Tier 1 — Org-wide standards** apply to every agent in every session, regardless of domain. `docs/skills/tier1/output-formatting-standard.md` governs all formatting: findings file structure, commit message format, Gherkin indentation, code snippet conventions.
 
-`docs/skills/gherkin-scenario-quality.md` is the first skill. The "before" state (the raw prompt) is preserved at `docs/prompts/prompt-gherkin-scenario-quality.md`.
+**Tier 2 — Domain methodology** encodes senior practitioner expertise specific to this project. `docs/skills/tier2/gherkin-scenario-quality.md` encodes the five-question diagnostic and output contract developed across Issues #5–#9. It is not general-purpose Gherkin advice — it encodes this codebase's specific debt history.
+
+**Tier 3 — Personal workflow** captures individual patterns that should be documented and shared but are not yet universal standards. `docs/skills/tier3/why-this-matters-writing.md` encodes the four-component structure for findings paragraphs, with a documented decision to promote it to Tier 2.
+
+A skill differs from a prompt in three ways: version control (a skill has a diff; a prompt doesn't), output contract (a skill specifies exactly what to produce), and routing signal (a skill's description line is designed for agent routing; a prompt must be remembered and pasted).
+
+The "before" state of the first skill is preserved at `docs/prompts/prompt-gherkin-scenario-quality.md`.
 
 ---
 
@@ -202,4 +211,4 @@ If you found the repo useful, the newsletter is where the full context lives —
 
 ---
 
-_Repo current as of Issue #9._
+_Repo current as of Issue #10._
