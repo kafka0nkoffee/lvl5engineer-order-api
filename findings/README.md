@@ -19,6 +19,7 @@ protocol defined in `CLAUDE.md`. They are the raw material for each newsletter i
 | #7    | The scope problem: spec at boundaries | [issue-07-scope-problem.md](issue-07-scope-problem.md)                           |
 | #8    | Spec audit: fixing debt and the framework | [issue-08-spec-audit.md](issue-08-spec-audit.md)                             |
 | #9    | Skills infrastructure: prompts vs skills  | [issue-09-skills-infrastructure.md](issue-09-skills-infrastructure.md)       |
+| #10   | The 3-tier skill architecture             | [issue-10-three-tier-architecture.md](issue-10-three-tier-architecture.md)   |
 
 ---
 
