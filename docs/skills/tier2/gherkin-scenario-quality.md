@@ -1,5 +1,6 @@
 # Skill: Gherkin Scenario Quality
 
+**Tier:** 2 — Domain methodology
 **Version:** 1.1
 **Last updated:** 2026-06-13 (Issue #9)
 **Project:** lvl5engineer-order-api
@@ -171,3 +172,5 @@ This skill formalizes the methodology developed across:
 - `docs/spec-audit-framework.md` — the full five-question framework (detailed reference)
 
 The prompt version of this skill (before formalization) is at `docs/prompts/prompt-gherkin-scenario-quality.md`.
+
+For output formatting of the scenarios this skill produces, apply `docs/skills/tier1/output-formatting-standard.md`.
