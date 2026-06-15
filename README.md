@@ -104,7 +104,9 @@ order-api/
 │   ├── issue-06-cicd-guardrails.md
 │   ├── issue-07-scope-problem.md
 │   ├── issue-08-spec-audit.md
-│   └── issue-09-skills-infrastructure.md
+│   ├── issue-09-skills-infrastructure.md
+│   ├── issue-10-three-tier-architecture.md
+│   └── issue-11-non-human-callers.md
 ├── docs/
 │   ├── spec-audit-framework.md          # Reusable spec audit framework (Issue #8)
 │   ├── prompts/
@@ -113,7 +115,8 @@ order-api/
 │       ├── tier1/
 │       │   └── output-formatting-standard.md   # Org-wide formatting standard (Issue #10)
 │       ├── tier2/
-│       │   └── gherkin-scenario-quality.md     # Domain skill: Gherkin quality (Issue #9, moved #10)
+│       │   ├── gherkin-scenario-quality.md     # Domain skill: Gherkin quality v1.1 (Issue #9)
+│       │   └── gherkin-scenario-quality-v2.md  # Agent-safe v2 with four guards (Issue #11)
 │       └── tier3/
 │           └── why-this-matters-writing.md     # Personal workflow: findings paragraphs (Issue #10)
 ├── CLAUDE.md                            # Agent standing orders
@@ -171,6 +174,7 @@ Each newsletter issue has a corresponding findings file documenting what the age
 | [#8 — Spec audit](findings/issue-08-spec-audit.md)                                 | Fixed all 7 debt items; produced reusable audit framework    | Six-class debt taxonomy (UNDERSPECIFIED, MIXED CONCERN, UNDEFINED TERM, AMBIGUOUS COUNT, IMPLICIT FLOW, LEAKY ABSTRACTION). Residual debt: 0.22 items/scenario — both documented, neither silent. |
 | [#9 — Skills infrastructure](findings/issue-09-skills-infrastructure.md)           | Converted best reused prompt into a structured skill         | Same input, prompt version → 6 implicit decisions; skill version → 2 (both surfaced explicitly). The prompt produces output that passes today's tests; the skill produces output a different agent can implement tomorrow without making decisions you didn't make. |
 | [#10 — 3-tier architecture](findings/issue-10-three-tier-architecture.md)          | Mapped project to 3-tier model; built skills at all three tiers | The most dangerous institutional knowledge looks like a standard — it produces consistent output — but only because the person holding the pattern hasn't left yet. A Tier 3 skill that should be Tier 2 is invisible until the session that exposes it. |
+| [#11 — Non-human callers](findings/issue-11-non-human-callers.md)                  | Stress-tested Gherkin skill v1.1; built agent-safe v2 with four guards | A human-friendly skill is dangerous at agent scale not because it produces wrong output — it produces output that looks indistinguishably right — but because it always gives you something useful and never tells you when useful is the wrong thing to give. |
 
 ---
 
@@ -193,7 +197,7 @@ Issue #9 introduced the `docs/skills/` directory. Issue #10 organized it into a 
 
 **Tier 1 — Org-wide standards** apply to every agent in every session, regardless of domain. `docs/skills/tier1/output-formatting-standard.md` governs all formatting: findings file structure, commit message format, Gherkin indentation, code snippet conventions.
 
-**Tier 2 — Domain methodology** encodes senior practitioner expertise specific to this project. `docs/skills/tier2/gherkin-scenario-quality.md` encodes the five-question diagnostic and output contract developed across Issues #5–#9. It is not general-purpose Gherkin advice — it encodes this codebase's specific debt history.
+**Tier 2 — Domain methodology** encodes senior practitioner expertise specific to this project. `docs/skills/tier2/gherkin-scenario-quality-v2.md` is the current version — stress-tested in Issue #11 against adversarial inputs and reinforced with four pre-flight guards (empty input, domain check, contradiction halt, idempotency). v1.1 is preserved at `gherkin-scenario-quality.md` for reference.
 
 **Tier 3 — Personal workflow** captures individual patterns that should be documented and shared but are not yet universal standards. `docs/skills/tier3/why-this-matters-writing.md` encodes the four-component structure for findings paragraphs, with a documented decision to promote it to Tier 2.
 
@@ -211,4 +215,4 @@ If you found the repo useful, the newsletter is where the full context lives —
 
 ---
 
-_Repo current as of Issue #10._
+_Repo current as of Issue #11._
