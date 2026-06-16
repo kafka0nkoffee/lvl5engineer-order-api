@@ -21,6 +21,7 @@ protocol defined in `CLAUDE.md`. They are the raw material for each newsletter i
 | #9    | Skills infrastructure: prompts vs skills  | [issue-09-skills-infrastructure.md](issue-09-skills-infrastructure.md)       |
 | #10   | The 3-tier skill architecture             | [issue-10-three-tier-architecture.md](issue-10-three-tier-architecture.md)   |
 | #11   | Non-human callers: stress-testing skills  | [issue-11-non-human-callers.md](issue-11-non-human-callers.md)               |
+| #12   | Skill review: reading the skill before running it | [issue-12-skill-review.md](issue-12-skill-review.md)                 |
 
 ---
 

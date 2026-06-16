@@ -106,9 +106,12 @@ order-api/
 │   ├── issue-08-spec-audit.md
 │   ├── issue-09-skills-infrastructure.md
 │   ├── issue-10-three-tier-architecture.md
-│   └── issue-11-non-human-callers.md
+│   ├── issue-11-non-human-callers.md
+│   └── issue-12-skill-review.md
 ├── docs/
 │   ├── spec-audit-framework.md          # Reusable spec audit framework (Issue #8)
+│   ├── skill-review-checklist.md        # Five-dimension skill review checklist (Issue #12)
+│   ├── skill-pr-template.md             # PR template for skill version control (Issue #12)
 │   ├── prompts/
 │   │   └── prompt-gherkin-scenario-quality.md  # Raw prompt (before state, Issue #9)
 │   └── skills/
@@ -175,6 +178,7 @@ Each newsletter issue has a corresponding findings file documenting what the age
 | [#9 — Skills infrastructure](findings/issue-09-skills-infrastructure.md)           | Converted best reused prompt into a structured skill         | Same input, prompt version → 6 implicit decisions; skill version → 2 (both surfaced explicitly). The prompt produces output that passes today's tests; the skill produces output a different agent can implement tomorrow without making decisions you didn't make. |
 | [#10 — 3-tier architecture](findings/issue-10-three-tier-architecture.md)          | Mapped project to 3-tier model; built skills at all three tiers | The most dangerous institutional knowledge looks like a standard — it produces consistent output — but only because the person holding the pattern hasn't left yet. A Tier 3 skill that should be Tier 2 is invisible until the session that exposes it. |
 | [#11 — Non-human callers](findings/issue-11-non-human-callers.md)                  | Stress-tested Gherkin skill v1.1; built agent-safe v2 with four guards | A human-friendly skill is dangerous at agent scale not because it produces wrong output — it produces output that looks indistinguishably right — but because it always gives you something useful and never tells you when useful is the wrong thing to give. |
+| [#12 — Skill review](findings/issue-12-skill-review.md)                             | Built five-dimension skill review framework; applied it to v1.1 and v2.0 | Stress tests prove a skill works when called. Review proves the skill is ready to be called. Both descriptions exceed 120 characters in the routing signal — a finding that behavioral stress testing cannot reach. |
 
 ---
 
@@ -207,6 +211,43 @@ The "before" state of the first skill is preserved at `docs/prompts/prompt-gherk
 
 ---
 
+## Skill review framework
+
+Issue #12 built the review process that should precede every skill version bump. Two documents:
+
+**`docs/skill-review-checklist.md`** — a five-dimension checklist that a reviewer must work
+through before approving a new skill version. The five dimensions are:
+
+1. **Routing signal** — Is the description ≤ 120 characters? Does it name the artifact type,
+   domain scope, and methodology?
+2. **Output contract** — Is every requirement enumerable? Can two agents produce different
+   outputs that both satisfy it? Are absence requirements listed?
+3. **Methodology** — Does it describe reasoning or just procedure? Does it generalize to
+   edge cases not in the examples?
+4. **Idempotency** — Does the skill produce the same output for the same input? Does it
+   return already-correct input unchanged?
+5. **Failure modes** — Are all out-of-scope, contradictory, and empty inputs handled with
+   FAIL SIGNAL or CORRECT REFUSAL, not PLAUSIBLE WRONG output?
+
+**`docs/skill-pr-template.md`** — a PR template for version-controlled skill repositories,
+with a summary, a behavioral diff (what the previous version did vs. this version), a
+reviewer checklist mapping to the five dimensions, and a sign-off section.
+
+Applied retrospectively to both v1.1 and v2.0 of the Gherkin quality skill:
+
+- **v1.1 verdict: CHANGES REQUESTED.** The review would have caught all three v2.0 failure
+  modes (idempotency, UI translation, contradiction handling) before the stress tests ran.
+- **v2.0 verdict: APPROVED WITH COMMENTS.** The four guards are correctly implemented, but
+  the routing signal exceeds 120 characters (both versions), Guard 4 has a return value
+  ambiguity for pipeline consumers, and Guard 4 passes scenarios with missing Q5 side-effect
+  assertions. These are documented as findings for v2.1.
+
+The key finding: both routing signals are over the 120-character limit. This is not catchable
+by behavioral stress tests, which test the skill when invoked — not whether the skill gets
+invoked. See `findings/issue-12-skill-review.md`.
+
+---
+
 ## Newsletter
 
 **[The Level 5 Engineer](https://level5engineer.substack.com/)** — free, 22 issues planned across five layers: Specification (Issues 1–8, complete), Skills, Stewardship, and Synthesis.
@@ -215,4 +256,4 @@ If you found the repo useful, the newsletter is where the full context lives —
 
 ---
 
-_Repo current as of Issue #11._
+_Repo current as of Issue #12._
