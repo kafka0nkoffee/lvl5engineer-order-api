@@ -1,3 +1,6 @@
+<!-- DEPRECATED: 2026-06-16 — superseded by docs/skills/tier2/gherkin-scenario-quality-v2.md.
+     Do not use. Will be removed in Issue #14 session. -->
+
 # Prompt: Gherkin Scenario Quality Check
 
 > The "before" state. This is the prompt as it would be pasted into a Claude Code

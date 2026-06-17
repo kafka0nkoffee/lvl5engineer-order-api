@@ -1,3 +1,7 @@
+<!-- DEPRECATED: 2026-06-16 — superseded by gherkin-scenario-quality-v2.md (v2.0).
+     Issue #12 review verdict: CHANGES REQUESTED.
+     Do not use. Will be removed in Issue #14 session. -->
+
 # Skill: Gherkin Scenario Quality
 
 **Tier:** 2 — Domain methodology
