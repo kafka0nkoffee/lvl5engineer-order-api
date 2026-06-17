@@ -107,19 +107,24 @@ order-api/
 │   ├── issue-09-skills-infrastructure.md
 │   ├── issue-10-three-tier-architecture.md
 │   ├── issue-11-non-human-callers.md
-│   └── issue-12-skill-review.md
+│   ├── issue-12-skill-review.md
+│   └── issue-13-skill-audit.md
 ├── docs/
 │   ├── spec-audit-framework.md          # Reusable spec audit framework (Issue #8)
 │   ├── skill-review-checklist.md        # Five-dimension skill review checklist (Issue #12)
 │   ├── skill-pr-template.md             # PR template for skill version control (Issue #12)
+│   ├── skill-audit-template.md          # Reusable prompt library audit template (Issue #13)
 │   ├── prompts/
 │   │   └── prompt-gherkin-scenario-quality.md  # Raw prompt (before state, Issue #9)
 │   └── skills/
 │       ├── tier1/
 │       │   └── output-formatting-standard.md   # Org-wide formatting standard (Issue #10)
 │       ├── tier2/
-│       │   ├── gherkin-scenario-quality.md     # Domain skill: Gherkin quality v1.1 (Issue #9)
-│       │   └── gherkin-scenario-quality-v2.md  # Agent-safe v2 with four guards (Issue #11)
+│       │   ├── gherkin-scenario-quality.md     # DEPRECATED — use v2 (Issue #13)
+│       │   ├── gherkin-scenario-quality-v2.md  # Agent-safe v2 with four guards (Issue #11)
+│       │   ├── session-start-protocol.md       # Session initialization protocol (Issue #13)
+│       │   ├── feature-file-audit.md           # Spec debt audit skill (Issue #13)
+│       │   └── step-definition-style.md        # pytest-bdd step conventions (Issue #13)
 │       └── tier3/
 │           └── why-this-matters-writing.md     # Personal workflow: findings paragraphs (Issue #10)
 ├── CLAUDE.md                            # Agent standing orders
@@ -179,6 +184,7 @@ Each newsletter issue has a corresponding findings file documenting what the age
 | [#10 — 3-tier architecture](findings/issue-10-three-tier-architecture.md)          | Mapped project to 3-tier model; built skills at all three tiers | The most dangerous institutional knowledge looks like a standard — it produces consistent output — but only because the person holding the pattern hasn't left yet. A Tier 3 skill that should be Tier 2 is invisible until the session that exposes it. |
 | [#11 — Non-human callers](findings/issue-11-non-human-callers.md)                  | Stress-tested Gherkin skill v1.1; built agent-safe v2 with four guards | A human-friendly skill is dangerous at agent scale not because it produces wrong output — it produces output that looks indistinguishably right — but because it always gives you something useful and never tells you when useful is the wrong thing to give. |
 | [#12 — Skill review](findings/issue-12-skill-review.md)                             | Built five-dimension skill review framework; applied it to v1.1 and v2.0 | Stress tests prove a skill works when called. Review proves the skill is ready to be called. Both descriptions exceed 120 characters in the routing signal — a finding that behavioral stress testing cannot reach. |
+| [#13 — Skill audit](findings/issue-13-skill-audit.md)                               | Full prompt library inventory; three skill conversions; reusable audit template | Five step definition conventions followed across twelve issues were never written down. The audit found them, named them, and converted them to a skill in the final session of Layer 2. |
 
 ---
 
@@ -208,6 +214,37 @@ Issue #9 introduced the `docs/skills/` directory. Issue #10 organized it into a 
 A skill differs from a prompt in three ways: version control (a skill has a diff; a prompt doesn't), output contract (a skill specifies exactly what to produce), and routing signal (a skill's description line is designed for agent routing; a prompt must be remembered and pasted).
 
 The "before" state of the first skill is preserved at `docs/prompts/prompt-gherkin-scenario-quality.md`.
+
+---
+
+## Layer 2 complete — Skills infrastructure
+
+Issues #9–13 built a complete skills infrastructure on top of the Specification layer from
+Issues #1–8.
+
+**What Layer 2 produced:**
+
+| Artifact | Location | Issue |
+|---|---|---|
+| Gherkin quality skill v1.1 | `docs/skills/tier2/gherkin-scenario-quality.md` *(deprecated)* | #9 |
+| Output formatting standard | `docs/skills/tier1/output-formatting-standard.md` | #10 |
+| "Why this matters" writing skill | `docs/skills/tier3/why-this-matters-writing.md` | #10 |
+| Gherkin quality skill v2.0 (agent-safe) | `docs/skills/tier2/gherkin-scenario-quality-v2.md` | #11 |
+| Five-dimension skill review checklist | `docs/skill-review-checklist.md` | #12 |
+| Skill PR template | `docs/skill-pr-template.md` | #12 |
+| Session start protocol | `docs/skills/tier2/session-start-protocol.md` | #13 |
+| Feature file audit skill | `docs/skills/tier2/feature-file-audit.md` | #13 |
+| Step definition style skill | `docs/skills/tier2/step-definition-style.md` | #13 |
+| Prompt library audit template | `docs/skill-audit-template.md` | #13 |
+
+**What changed:** Before Issue #9, one pasted prompt governed Gherkin quality and everything
+else relied on CLAUDE.md prose or agent inference. After Issue #13: six active skills across
+three tiers, a review process for new skills, and an audit template that generalizes to any
+project.
+
+**What Layer 3 inherits:** An undocumented implementation layer (app/main.py conventions),
+one skill with an open comment (step-definition-style v1.0 helper extraction), and
+why-this-matters-writing.md at Tier 3 pending its documented promotion criteria.
 
 ---
 
@@ -256,4 +293,4 @@ If you found the repo useful, the newsletter is where the full context lives —
 
 ---
 
-_Repo current as of Issue #12._
+_Repo current as of Issue #13 — Layer 2 complete._
