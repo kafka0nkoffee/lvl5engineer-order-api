@@ -111,7 +111,8 @@ order-api/
 │   ├── issue-13-skill-audit.md
 │   ├── issue-14-memory-wall.md
 │   ├── issue-15-claude-md.md
-│   └── issue-16-adrs.md
+│   ├── issue-16-adrs.md
+│   └── issue-17-evals.md
 ├── docs/
 │   ├── spec-audit-framework.md          # Reusable spec audit framework (Issue #8)
 │   ├── skill-review-checklist.md        # Five-dimension skill review checklist (Issue #12)
@@ -121,6 +122,10 @@ order-api/
 │   ├── ADR/                            # Architecture Decision Records (Issue #16)
 │   │   ├── ADR-001-inventory-before-payment.md
 │   │   └── ADR-002-fire-and-forget-notification.md
+│   ├── evals/                          # Pre-flight evals (Issue #17)
+│   │   ├── eval-environment.md
+│   │   ├── eval-operation-scope.md
+│   │   └── eval-contract-preflight.md
 │   ├── claude-md-versions/             # Naive/better/production-grade comparison (Issue #15)
 │   │   ├── naive.md
 │   │   ├── better.md
@@ -199,6 +204,7 @@ Each newsletter issue has a corresponding findings file documenting what the age
 | [#14 — Memory wall](findings/issue-14-memory-wall.md)                               | Agent failure taxonomy; Layer 3 artifact map; project exposure assessment | Agents operating on systems with real history fail in four specific, nameable ways — and none of the four are prevented by the spec or skill layers alone. Layer 3 is the infrastructure for what must not change. |
 | [#15 — Production-grade CLAUDE.md](findings/issue-15-claude-md.md)                  | Three CLAUDE.md versions built and compared; root CLAUDE.md upgraded | The gap between "works without catastrophic failures" and "production-grade" is not about volume — it's about the difference between describing current behavior and constraining future behavior. |
 | [#16 — Architecture Decision Records](findings/issue-16-adrs.md)                     | ADR-001 and ADR-002 built; dangerous improvement demonstrated and reverted | A human-facing ADR documents the past. An agent-readable ADR constrains the future. The dangerous improvements section is the structural difference. |
+| [#17 — Evals as guardrails](findings/issue-17-evals.md)                               | Three pre-flight evals built; four task demonstrations run | The most dangerous change in this session passes all 15 tests. Task 4 (synchronous notification) would cause a complete order processing outage on the first notification service incident — and no behavioral test asserts asynchrony. The eval is the only protection. |
 
 ---
 
@@ -283,6 +289,8 @@ Issue #14 opens the third layer with a research and documentation session. No ne
 
 **Issue #16 — Architecture Decision Records:** Built `docs/ADR/ADR-001-inventory-before-payment.md` and `docs/ADR/ADR-002-fire-and-forget-notification.md`. Each ADR adds four agent-specific sections beyond the standard format: invariant statement, dangerous improvements list, agent check questions (yes/no, answerable from code), and a consequence table mapping test outcomes to specific violations. The session demonstrated the dangerous improvement live: implemented a concurrent inventory+payment refactor, ran tests (2 of 5 failed on "payment gateway is never called"), documented which ADR check question would have caught it before implementation, then reverted. The key finding: the test caught the violation because the spec was written to catch it — and the ADR explains why the spec was written that way, which prevents the violation from being reattempted in every future session framed as a performance task. Updated CLAUDE.md decision index with actual ADR file paths and a mandatory pre-flight protocol.
 
+**Issue #17 — Evals as guardrails:** Built three pre-flight evals: `docs/evals/eval-environment.md` (fires before touching infrastructure files — `ci.yml`, `CLAUDE.md`, skill files, ADRs), `docs/evals/eval-operation-scope.md` (fires before touching `app/main.py` or `tests/`), and `docs/evals/eval-contract-preflight.md` (fires before touching `wiremock/` stubs or `pacts/`). The session ran all three evals against four task descriptions and documented which question fires, what the agent is instructed to do, and whether each task would have caused a production failure without the eval. Key finding: Task 4 (making the notification call synchronous) passes all 15 tests, looks like an improvement, and causes a complete order processing outage on the first notification service incident. No behavioral test asserts that the notification call is asynchronous — the eval is the only protection. Added the "Pre-flight evals" section to CLAUDE.md with the action-to-eval mapping table.
+
 ---
 
 ## Skill review framework
@@ -330,4 +338,4 @@ If you found the repo useful, the newsletter is where the full context lives —
 
 ---
 
-_Repo current as of Issue #16 — ADRs built; dangerous improvement demonstrated and reverted._
+_Repo current as of Issue #17 — Three pre-flight evals built; test-vs-eval distinction documented._
