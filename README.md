@@ -110,13 +110,17 @@ order-api/
 │   ├── issue-12-skill-review.md
 │   ├── issue-13-skill-audit.md
 │   ├── issue-14-memory-wall.md
-│   └── issue-15-claude-md.md
+│   ├── issue-15-claude-md.md
+│   └── issue-16-adrs.md
 ├── docs/
 │   ├── spec-audit-framework.md          # Reusable spec audit framework (Issue #8)
 │   ├── skill-review-checklist.md        # Five-dimension skill review checklist (Issue #12)
 │   ├── skill-pr-template.md             # PR template for skill version control (Issue #12)
 │   ├── skill-audit-template.md          # Reusable prompt library audit template (Issue #13)
 │   ├── layer3-artifact-map.md           # Failure mode → artifact type map (Issue #14)
+│   ├── ADR/                            # Architecture Decision Records (Issue #16)
+│   │   ├── ADR-001-inventory-before-payment.md
+│   │   └── ADR-002-fire-and-forget-notification.md
 │   ├── claude-md-versions/             # Naive/better/production-grade comparison (Issue #15)
 │   │   ├── naive.md
 │   │   ├── better.md
@@ -194,6 +198,7 @@ Each newsletter issue has a corresponding findings file documenting what the age
 | [#13 — Skill audit](findings/issue-13-skill-audit.md)                               | Full prompt library inventory; three skill conversions; reusable audit template | Five step definition conventions followed across twelve issues were never written down. The audit found them, named them, and converted them to a skill in the final session of Layer 2. |
 | [#14 — Memory wall](findings/issue-14-memory-wall.md)                               | Agent failure taxonomy; Layer 3 artifact map; project exposure assessment | Agents operating on systems with real history fail in four specific, nameable ways — and none of the four are prevented by the spec or skill layers alone. Layer 3 is the infrastructure for what must not change. |
 | [#15 — Production-grade CLAUDE.md](findings/issue-15-claude-md.md)                  | Three CLAUDE.md versions built and compared; root CLAUDE.md upgraded | The gap between "works without catastrophic failures" and "production-grade" is not about volume — it's about the difference between describing current behavior and constraining future behavior. |
+| [#16 — Architecture Decision Records](findings/issue-16-adrs.md)                     | ADR-001 and ADR-002 built; dangerous improvement demonstrated and reverted | A human-facing ADR documents the past. An agent-readable ADR constrains the future. The dangerous improvements section is the structural difference. |
 
 ---
 
@@ -276,6 +281,8 @@ Issue #14 opens the third layer with a research and documentation session. No ne
 
 **Issue #15 — Production-grade CLAUDE.md:** Built three versions of CLAUDE.md (naive, better, production-grade) as a comparison artifact. Replaced the root `CLAUDE.md` with the production-grade version, which adds five required sections: project scope boundaries, environment discrimination, architectural invariants, external service contracts, and a decision index. The production-grade version passes all four failure mode tests; the naive version fails all four; the better version fails one (invariant blindness). See `findings/issue-15-claude-md.md` and `docs/claude-md-versions/` for the full comparison.
 
+**Issue #16 — Architecture Decision Records:** Built `docs/ADR/ADR-001-inventory-before-payment.md` and `docs/ADR/ADR-002-fire-and-forget-notification.md`. Each ADR adds four agent-specific sections beyond the standard format: invariant statement, dangerous improvements list, agent check questions (yes/no, answerable from code), and a consequence table mapping test outcomes to specific violations. The session demonstrated the dangerous improvement live: implemented a concurrent inventory+payment refactor, ran tests (2 of 5 failed on "payment gateway is never called"), documented which ADR check question would have caught it before implementation, then reverted. The key finding: the test caught the violation because the spec was written to catch it — and the ADR explains why the spec was written that way, which prevents the violation from being reattempted in every future session framed as a performance task. Updated CLAUDE.md decision index with actual ADR file paths and a mandatory pre-flight protocol.
+
 ---
 
 ## Skill review framework
@@ -323,4 +330,4 @@ If you found the repo useful, the newsletter is where the full context lives —
 
 ---
 
-_Repo current as of Issue #15 — CLAUDE.md upgraded to production-grade._
+_Repo current as of Issue #16 — ADRs built; dangerous improvement demonstrated and reverted._
