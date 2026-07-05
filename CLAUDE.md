@@ -3,21 +3,37 @@
 > This file is read automatically by Claude Code at the start of every session.
 > It defines how the agent should behave, what it should never touch, and how
 > it should document its work for the Level 5 Engineer newsletter.
+>
+> **Production-grade version — Issue #15.** This CLAUDE.md contains five required
+> sections that address the four agent failure modes from Issue #14: environment
+> discrimination, architectural invariants, external service contracts, and a
+> decision index. Read Section 3 (invariants) and Section 5 (decision index) before
+> modifying any aspect of the order creation flow.
 
 ---
 
-## What this project is
+## What this project is and is NOT
 
-This repository is the living codebase behind **The Level 5 Engineer** — a newsletter
-documenting a Senior Engineer's climb from Level 2 to Level 5 AI-native development.
+This is the living codebase behind **The Level 5 Engineer** newsletter. It is an order
+management REST API (FastAPI, port 8093) built entirely from Gherkin behavioral specifications
+by Claude Code agents. The specs, findings, and editorial judgment are the human author's.
+The implementation is the agent's.
 
-Every piece of code here is built by an AI agent working from external behavioural
-specifications (Gherkin scenarios) that the agent cannot modify. The agent's job is
-to make those scenarios pass. The human's job is to write the scenarios, review the
-outcomes, and document the findings.
+**This service owns:**
+- The order creation flow (`POST /orders`)
+- The order status flow (`GET /orders/{id}`)
+- The orchestration of calls to the payment gateway and inventory service
 
-This is not a tutorial codebase. It is a real working system being built in public,
-issue by issue, as a learning artifact.
+**This service does NOT own:**
+- Payment processing logic — the payment gateway is an external dependency, not a component
+- Inventory management — the inventory service is an external dependency, not a component
+- User authentication — out of scope for this project entirely
+- Notification delivery guarantees — the notification service is fire-and-forget by design
+
+**If asked to "fix the payment logic" or "improve inventory management":** clarify which
+layer is meant before acting. If the request concerns how the order service handles payment
+gateway responses (e.g., what to do when the gateway returns DECLINED), that is in scope.
+If it concerns the payment gateway's internal processing, it is out of scope.
 
 ---
 
@@ -25,20 +41,59 @@ issue by issue, as a learning artifact.
 
 ```
 order-api/
-├── app/main.py                         # FastAPI order management service
-├── mock_server.py                      # WireMock-compatible mock server (Python)
+├── app/
+│   ├── main.py                          # FastAPI order service
+│   └── notification_service.py          # Notification endpoint (Issue #7)
+├── mock_server.py                       # WireMock-compatible mock server
 ├── wiremock/
-│   ├── payment-mappings/               # Stubs for payment gateway (WireMock format)
-│   └── inventory-mappings/             # Stubs for inventory service (WireMock format)
+│   ├── payment-mappings/                # Stubs for payment gateway
+│   ├── inventory-mappings/              # Stubs for inventory service
+│   └── notification-mappings/           # Stubs for notification service
 ├── tests/
-│   ├── features/                       # Gherkin scenarios — the external spec
-│   └── steps/                          # pytest-bdd step definitions
-├── findings/
-│   ├── README.md                       # Index of all findings files
-│   └── issue-{N}-{topic}.md           # One file per newsletter issue/session
-├── requirements.txt
-└── CLAUDE.md                           # You are here
+│   ├── features/                        # Gherkin scenarios — the external spec
+│   ├── steps/                           # pytest-bdd step definitions
+│   └── pact/                            # Pact contract tests
+├── scripts/
+│   └── can_i_deploy.py                  # Local can-i-deploy simulation
+├── docs/
+│   ├── layer3-artifact-map.md           # Failure mode → artifact map (Issue #14)
+│   ├── claude-md-versions/             # Naive/better/production-grade comparison (Issue #15)
+│   ├── skills/                          # 3-tier skill architecture
+│   └── spec-audit-framework.md         # Spec debt audit framework (Issue #8)
+├── findings/                            # Session findings (one file per issue)
+└── .github/workflows/ci.yml            # GitHub Actions pipeline (four jobs)
 ```
+
+---
+
+## Section 2: Environment discrimination
+
+### Production resources — highest risk, specific protocols
+
+**`.github/workflows/ci.yml`** — Shared production resource. Any change immediately affects
+every contributor's merge gate. The four pipeline jobs (`test → pact-consumer → pact-verify
+→ can-i-deploy`) are required gates — not optional checks, not advisory signals.
+
+- Do not add `continue-on-error: true` to any job.
+- Do not add skip conditions (`if:` clauses) that exempt branches from any job.
+- Do not reduce the dependency chain between jobs.
+- If CI is consistently failing and you believe the cause is a flaky test rather than a
+  real breakage, surface the issue to the human. Do not work around it in the YAML.
+- Disabling or weakening any of the four pipeline jobs is equivalent to removing a
+  production safety gate.
+
+**`main` branch** — Production equivalent for this project. Pushing directly to `main`
+bypasses the four-job pipeline. All changes go through a branch that clears all four CI jobs.
+
+**`pacts/` directory** — Derived artifact. Generated by running the Pact consumer tests.
+Never edit manually. A manually-edited pact file creates a consumer contract that no consumer
+code actually holds — provider verification passes against a fictional contract.
+
+### Test resources — may be modified as part of normal work
+
+- Local ports 8091, 8092, 8093, 8094 — mock server ports, managed by pytest session fixtures
+- Feature branches — changes here do not affect the shared merge gate until a PR is opened
+- All files under `tests/` and `wiremock/` (with the stub modification protocol below)
 
 ---
 
@@ -53,27 +108,236 @@ order-api/
 - Install new packages via pip and update `requirements.txt`
 - Create new test feature files in `tests/features/`
 
+### ⚠️ Modify with explicit protocol
+
+- **Existing stub files** in `wiremock/`: Run the full Pact consumer suite first. If any
+  Pact consumer test fails after the stub change, the stub must be reverted.
+- **`.github/workflows/ci.yml`**: See Section 2. Requires human review. No weakening of gates.
+
 ### ❌ You may not
 
 - Modify existing `.feature` files in `tests/features/` — these are the external
-  behavioural spec written by the human. They define what the system must do.
-  The agent's job is to satisfy them, not rewrite them.
-- Delete or rename existing passing tests
-- Modify `CLAUDE.md` unless explicitly instructed to do so by the human
+  behavioral spec written by the human
+- Edit files in `pacts/` manually
+- Push directly to `main`
+- Modify `CLAUDE.md` unless explicitly instructed to do so
+
+---
+
+## Section 3: Architectural invariants
+
+These properties must remain true across all future changes to this system. They are not
+implementation preferences — they are load-bearing design decisions. Violating an invariant
+produces a failure that passes all behavioral tests and manifests in production.
+
+**Read the applicable invariant before modifying any aspect of the order creation flow.**
+
+---
+
+**Invariant 1: Inventory must be checked before the payment gateway is called.**
+
+Consequence: If violated, the payment gateway is charged for orders that cannot be
+fulfilled. Every out-of-stock order that reaches payment requires a reversal through the
+gateway — a reversal flow that does not currently exist in this service.
+
+Currently enforced by: Gherkin Scenario 3 in `tests/features/order_creation.feature`
+("the payment gateway is never called for out-of-stock items"). Note: this scenario
+enforces the *outcome*, not the *mechanism*. A concurrent implementation that checks
+inventory and payment simultaneously, then cancels the payment if inventory fails, satisfies
+the Gherkin scenario while violating this invariant — because the gateway receives a charge
+request before the inventory result is known.
+
+ADR reference: ADR-001 (planned — Issue #16)
+
+---
+
+**Invariant 2: The notification service call must remain asynchronous (fire-and-forget).**
+
+Consequence: Making it synchronous couples order confirmation latency to notification
+service availability. A notification service outage blocks all order confirmations — a much
+worse failure mode than a missed notification.
+
+Currently enforced by: Convention — `_fire_notification()` in `app/main.py` runs in a
+daemon thread with all exceptions caught and discarded. There is no behavioral test that
+asserts the call is asynchronous.
+
+Important: "More reliable notifications" is not a valid reason to make this call synchronous.
+Making it synchronous trades notification reliability for order confirmation reliability.
+This project has explicitly made the opposite choice. Any task asking to "ensure
+notifications are delivered before confirming the order" violates this invariant.
+
+ADR reference: ADR-002 (planned — Issue #16); see also `findings/issue-07-scope-problem.md`
+
+---
+
+**Invariant 3: The Pact consumer contract is the authoritative source for API shape between
+this service and its dependencies.**
+
+Consequence: If a stub file is changed without updating the Pact contract (by running the
+consumer tests), provider verification fails in CI. If the Pact contract file is modified
+directly, the contract no longer reflects what the consumer code actually expects.
+
+Currently enforced by: The `pact-verify` job in CI; the `can-i-deploy` check.
+
+Correct flow for any stub response change:
+1. Modify the implementation or stub
+2. Run `pytest tests/pact/test_*_consumer.py -v` — regenerates pact files from code
+3. Run `pytest tests/pact/test_provider_verification.py -v` — verifies against new contract
+4. If verification fails, the change must be reverted
+
+ADR reference: `findings/issue-04-pact-contract-testing.md`
+
+---
+
+**Invariant 4: The payment retry cap is 2 total attempts (1 original + 1 retry).**
+
+Consequence: If interpreted as "2 retries in addition to the first attempt," worst-case
+latency becomes 3 attempts × 5 seconds = 15 seconds, violating the 12-second response window
+in Gherkin Scenario 5. "Total" in the step definition includes the original attempt.
+
+Currently enforced by: `tests/features/order_creation.feature` Scenario 5: "the payment
+gateway receives no more than 2 charge requests total."
+
+ADR reference: `findings/issue-08-spec-audit.md`
+
+---
+
+**Invariant 5: The mock server lifecycle is owned by pytest session fixtures, not by
+external processes.**
+
+Consequence: If any process starts mock servers on ports 8091/8092/8093/8094 before the
+pytest session fixtures run, the fixtures fail with `OSError: Address already in use`.
+The `ci.yml` must not include a "start mock servers" step before invoking pytest.
+
+Currently enforced by: Convention; see `findings/issue-06-cicd-guardrails.md` (port
+conflict finding).
+
+ADR reference: `findings/issue-06-cicd-guardrails.md`
+
+---
+
+## Section 4: External service contracts
+
+### Payment gateway (port 8091)
+
+**What this service sends:**
+
+```text
+POST /payments/charge/{scenario}
+Body: {"order_id": "<uuid>", "amount": <float>, "items": [<sku>, ...]}
+```
+
+**Load-bearing response fields** (Pact contract enforces — do not remove):
+- `status`: "ACCEPTED" / "DECLINED" — drives the order outcome
+- `transaction_id`: Present on ACCEPTED — stored in the order record
+- `amount`: Present on ACCEPTED — echoed back for verification
+
+**Failure modes handled:**
+- DECLINED (gateway returns `"status": "DECLINED"`) → order returns `PAYMENT_FAILED` (402),
+  inventory reservation released
+- TIMEOUT (no response within `PAYMENT_TIMEOUT_SECONDS=5`) → retry once (2 total attempts),
+  return `PAYMENT_PENDING` (202) with `inventory_hold_minutes: 15`
+
+**Failure modes intentionally NOT handled:**
+- Gateway returning 5xx status codes → treated identically to timeout; no specific recovery
+- Gateway returning malformed JSON → unhandled exception; no recovery logic
+
+**Design decisions driven by this service:**
+- The 2-total-attempt cap (Invariant 4) keeps worst-case latency (2 × 5s = 10s) within the
+  12-second Gherkin response window. Increasing `MAX_PAYMENT_RETRIES` or
+  `PAYMENT_TIMEOUT_SECONDS` requires recalculating against Scenario 5.
+
+---
+
+### Inventory service (port 8092)
+
+**What this service sends:**
+
+```text
+POST /inventory/check/{scenario}
+Body: {"items": [<sku>, ...]}
+```
+
+**Load-bearing response fields** (Pact contract enforces — do not remove):
+- `availability`: "ALL_AVAILABLE" / "OUT_OF_STOCK" / "PARTIAL" — drives the order path
+- `available_items`: List of available SKUs (required for PARTIAL)
+- `unavailable_items`: List of unavailable SKUs (required for OUT_OF_STOCK and PARTIAL)
+
+**Failure modes handled:**
+- OUT_OF_STOCK → order returns `UNAVAILABLE` (409); payment gateway never called (Invariant 1)
+- PARTIAL → order returns `PARTIAL_UNAVAILABLE` (207); payment gateway never called
+
+**Failure modes intentionally NOT handled:**
+- Inventory service timeout → not handled; propagates as unhandled exception
+- Unexpected availability value → not handled
+
+**Design decisions driven by this service:**
+- Inventory is checked BEFORE payment because inventory failure must prevent the payment
+  gateway from being called. This ordering is Invariant 1. Do not optimize this away.
+
+---
+
+### Notification service (port 8094)
+
+**What this service sends:**
+
+```text
+POST /notifications/order-confirmed
+Body: {"order_id": "<uuid>", "total": <float>}
+```
+
+**Load-bearing response fields:** None. This call is fire-and-forget. The response is
+discarded in all cases.
+
+**Failure modes handled:**
+- ALL failure modes (4xx, 5xx, timeout, connection refused) are handled by discarding the
+  result. The daemon thread catches all exceptions. This is intentional.
+
+**Failure modes intentionally NOT handled:**
+- Successful delivery confirmation — the order service does not verify notification delivery.
+  This is by design.
+
+**Design decisions driven by this service:**
+- This call is asynchronous because coupling order confirmation to notification delivery
+  would mean a notification outage blocks all orders. This is Invariant 2.
+- Any task asking to "improve notification reliability" or "ensure delivery before
+  confirming" must read Invariant 2 first. Making this call synchronous is not an
+  improvement — it is a trade-off this project has explicitly rejected.
+
+---
+
+## Section 5: Decision index
+
+Read the referenced document before acting on a topic listed here. If a topic is not in
+this index, there is no documented decision — flag it to the human rather than infer.
+
+| Topic | Decision location |
+|---|---|
+| Inventory-before-payment call ordering | Invariant 1 (this document); ADR-001 (Issue #16) |
+| Fire-and-forget notification design | Invariant 2 (this document); `findings/issue-07-scope-problem.md` |
+| Mock server lifecycle ownership | Invariant 5 (this document); `findings/issue-06-cicd-guardrails.md` |
+| Payment retry cap (2 total attempts) | Invariant 4 (this document); `findings/issue-08-spec-audit.md` |
+| Pact as authoritative contract mechanism | Invariant 3 (this document); `findings/issue-04-pact-contract-testing.md` |
+| Spec file ownership (one file per service) | `findings/issue-07-scope-problem.md` |
+| CI pipeline job structure and gate requirements | `findings/issue-06-cicd-guardrails.md` |
+| Step definition style conventions | `docs/skills/tier2/step-definition-style.md` |
+| Session initialization protocol | `docs/skills/tier2/session-start-protocol.md` |
+| Gherkin quality standard | `docs/skills/tier2/gherkin-scenario-quality-v2.md` |
+| Layer 3 artifact build order | `docs/layer3-artifact-map.md` |
 
 ---
 
 ## External dependencies
 
-| Service           | Simulated by              | Port | Mapping dir                    |
-| ----------------- | ------------------------- | ---- | ------------------------------ |
-| Payment Gateway   | WireMock / mock_server.py | 8091 | `wiremock/payment-mappings/`   |
+| Service | Simulated by | Port | Mapping dir |
+|---|---|---|---|
+| Payment Gateway | WireMock / mock_server.py | 8091 | `wiremock/payment-mappings/` |
 | Inventory Service | WireMock / mock_server.py | 8092 | `wiremock/inventory-mappings/` |
-| Order API         | FastAPI / uvicorn         | 8093 | `app/main.py`                  |
+| Order API | FastAPI / uvicorn | 8093 | `app/main.py` |
+| Notification Service | WireMock / mock_server.py | 8094 | `wiremock/notification-mappings/` |
 
-**Important:** The mock servers simulate real external services. Do not make real
-HTTP calls to external services during testing. All integration work happens
-against the stubs.
+**Important:** The mock servers simulate real external services. Do not make real HTTP calls
+to external services during testing. All integration work happens against the stubs.
 
 ---
 
@@ -83,20 +347,27 @@ against the stubs.
 # Install dependencies
 pip install -r requirements.txt
 
-# Run all scenarios
-pytest tests/steps/test_order_creation.py -v
+# Run all Gherkin scenarios (11 tests)
+pytest tests/steps/ -v
 
 # Run a specific scenario
 pytest tests/steps/test_order_creation.py -v -k "timeout"
+
+# Run Pact consumer and provider tests (4 tests)
+pytest tests/pact/ -v
+
+# Run can-i-deploy check
+python3 scripts/can_i_deploy.py
 ```
 
-All 5 scenarios must pass before any work is considered complete.
+All 15 tests must pass before any session is considered complete.
 
 ---
 
 ## Skills
 
-This project uses a 3-tier skill architecture. Read the relevant skill before producing output in its domain.
+This project uses a 3-tier skill architecture. Read the relevant skill before producing
+output in its domain.
 
 | Tier | Skill | When to use |
 |------|-------|-------------|
@@ -110,7 +381,7 @@ For all formatting decisions, the Tier 1 skill takes precedence over the prose i
 
 ## Documentation protocol — findings/
 
-This is the most important instruction in this file.
+This is the most important operational instruction in this file.
 
 **At the start of every session, create a new file in `findings/` named:**
 
@@ -118,26 +389,15 @@ This is the most important instruction in this file.
 findings/issue-{N}-{short-topic}.md
 ```
 
-For example: `findings/issue-04-pact-contract-testing.md`
-
 Do not append to existing findings files. Each session gets its own file.
 Do not summarise at the end of a session. Write findings as you encounter them.
 
-**After creating the file, add a row to `findings/README.md`:**
-
-```markdown
-| #N | Short topic description | [findings/issue-N-topic.md](findings/issue-N-topic.md) |
-```
+**After creating the file, add a row to `findings/README.md`.**
 
 **Also update the root `README.md`:**
-
 - Change the `_Repo up to date with Issue #N_` line to the current issue number
 - Add the new findings file to the project structure tree
-- Add a new section describing what changed this session, linking to the findings file
-- Keep the README accurate — it is the first thing a reader sees on GitHub
-
-The README is a public-facing document. Write updates to it as a practitioner
-summarising work for a peer, not as a changelog entry.
+- Add a new section describing what changed this session
 
 Use the following structure for each entry within the findings file:
 
@@ -148,58 +408,38 @@ Use the following structure for each entry within the findings file:
 **Status:** ✅ Worked | ❌ Failed | ⚠️ Partial
 
 ### What I tried
-
-[What was attempted and why]
-
 ### What happened
-
-[Exact output, error messages, unexpected behaviour]
-
 ### Root cause
-
-[Why it happened — be specific, not vague]
-
 ### The fix
-
-[What changed and why it worked]
-
 ### Why this matters
-
-[One paragraph written as if explaining to a senior engineer
-who hasn't seen this codebase. This paragraph will be used
-directly in the newsletter. Make it honest, specific, and
-free of jargon where possible.]
 ```
 
-The "Why this matters" paragraph is the most important part. It is the raw
-material for the newsletter. Write it as a practitioner reflecting on a real
-finding — not as documentation for a codebase.
+The "Why this matters" paragraph is the most important part. It is the raw material for the
+newsletter. Write it as a practitioner reflecting on a real finding.
 
 ---
 
 ## Commit conventions
 
 ```
-feat: add Pact consumer test for payment service
-fix: handle 404 passthrough from payment mock
-test: add scenario for concurrent order requests
-docs: add findings/issue-04-pact-contract-testing.md
-chore: update requirements.txt
+feat: add Pact consumer test for payment service — Issue #{N}
+fix: handle 404 passthrough from payment mock — Issue #{N}
+test: add scenario for concurrent order requests — Issue #{N}
+docs: add findings/issue-{N}-topic.md — Issue #{N}
+chore: update requirements.txt — Issue #{N}
+refactor: extract helper function — Issue #{N}
 ```
 
-Commit after every meaningful unit of work. Do not batch unrelated changes
-into a single commit.
+Commit after every meaningful unit of work. Do not batch unrelated changes into a
+single commit.
 
 ---
 
 ## Newsletter context
 
-The human author of this newsletter is:
+The human author is a Senior Software Engineer with 10+ years of experience, currently
+at Level 2–3 on the AI-native development ladder, documenting the climb to Level 5 in
+public. Writing for engineers who are curious but haven't yet made the leap.
 
-- A Senior Software Engineer with 10+ years of experience
-- Currently at Level 2–3 on the AI-native development ladder
-- Documenting the climb to Level 5 in public, in real time
-- Writing for an audience of engineers who are curious but haven't yet made the leap
-
-When writing `FINDINGS.md`, keep this audience in mind. The reader is a peer,
-not a student. Be direct. Don't over-explain. Don't under-explain failures.
+When writing `findings/`, keep this audience in mind. The reader is a peer, not a student.
+Be direct. Do not over-explain. Do not under-explain failures.
