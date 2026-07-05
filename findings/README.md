@@ -23,6 +23,7 @@ protocol defined in `CLAUDE.md`. They are the raw material for each newsletter i
 | #11   | Non-human callers: stress-testing skills  | [issue-11-non-human-callers.md](issue-11-non-human-callers.md)               |
 | #12   | Skill review: reading the skill before running it | [issue-12-skill-review.md](issue-12-skill-review.md)                 |
 | #13   | Skill audit: the Layer 2 stocktake               | [issue-13-skill-audit.md](issue-13-skill-audit.md)                   |
+| #14   | Memory wall: agent failure modes in systems with history | [issue-14-memory-wall.md](issue-14-memory-wall.md)             |
 
 ---
 
