@@ -1,4 +1,4 @@
-import os, uuid, threading
+import os, uuid, threading, concurrent.futures
 from datetime import datetime
 import httpx
 from fastapi import FastAPI, HTTPException
@@ -51,12 +51,33 @@ def create_order(req: OrderRequest):
     payment_timeout = float(os.environ.get("PAYMENT_TIMEOUT_SECONDS", "5"))
     max_retries = int(os.environ.get("MAX_PAYMENT_RETRIES", "2"))
 
-    # Step 1: check inventory
-    inv_resp = httpx.post(
-        f"{inventory_url}/inventory/check/{req.inventory_scenario}",
-        json={"items": [i.model_dump() for i in req.items]},
-        timeout=10.0,
-    )
+    items_payload = [i.model_dump() for i in req.items]
+
+    def _check_inventory():
+        return httpx.post(
+            f"{inventory_url}/inventory/check/{req.inventory_scenario}",
+            json={"items": items_payload},
+            timeout=10.0,
+        )
+
+    def _charge_payment():
+        try:
+            resp = httpx.post(
+                f"{payment_url}/payments/charge/{req.payment_scenario}",
+                json={"user_id": req.user_id, "items": items_payload},
+                timeout=payment_timeout,
+            )
+            return resp, None
+        except httpx.TimeoutException:
+            return None, "timeout"
+
+    # Run inventory check and payment charge concurrently to reduce p99 latency
+    with concurrent.futures.ThreadPoolExecutor(max_workers=2) as executor:
+        inv_future = executor.submit(_check_inventory)
+        pay_future = executor.submit(_charge_payment)
+        inv_resp = inv_future.result()
+        pay_resp, pay_err = pay_future.result()
+
     inv_items = inv_resp.json().get("items", [])
     available = [i["sku"] for i in inv_items if i.get("available")]
     unavailable = [i["sku"] for i in inv_items if not i.get("available")]
@@ -78,54 +99,37 @@ def create_order(req: OrderRequest):
             "unavailable_items": unavailable,
         }
 
-    # Step 2: attempt payment with retry cap on timeout
-    attempt = 0
-    payment_timed_out = False
+    # Inventory confirmed — evaluate payment result
+    if pay_err == "timeout":
+        return {
+            "status": "PAYMENT_PENDING",
+            "status_code": 202,
+            "inventory_hold_minutes": 15,
+            "payment_pending": True,
+            "message": "Payment confirmation is in progress",
+            "retry_count": 1,
+        }
 
-    while attempt < max_retries:
-        attempt += 1
-        try:
-            pay_resp = httpx.post(
-                f"{payment_url}/payments/charge/{req.payment_scenario}",
-                json={"user_id": req.user_id, "items": [i.model_dump() for i in req.items]},
-                timeout=payment_timeout,
-            )
-            pay_data = pay_resp.json()
+    pay_data = pay_resp.json()
 
-            if pay_resp.status_code == 200:
-                order_id = str(uuid.uuid4())
-                _orders[order_id] = {
-                    "db_status": "CONFIRMED",
-                    "order_created_at": datetime.utcnow().isoformat(),
-                }
-                total = sum(i.unit_price * i.quantity for i in req.items)
-                _fire_notification(req.user_id, order_id, total, req.notification_scenario)
-                return {
-                    "status": "CONFIRMED",
-                    "order_id": order_id,
-                }
+    if pay_resp.status_code == 200:
+        order_id = str(uuid.uuid4())
+        _orders[order_id] = {
+            "db_status": "CONFIRMED",
+            "order_created_at": datetime.utcnow().isoformat(),
+        }
+        total = sum(i.unit_price * i.quantity for i in req.items)
+        _fire_notification(req.user_id, order_id, total, req.notification_scenario)
+        return {
+            "status": "CONFIRMED",
+            "order_id": order_id,
+        }
 
-            # Declined or other non-200
-            return {
-                "status": "PAYMENT_FAILED",
-                "status_code": 402,
-                "decline_reason": pay_data.get("reason"),
-                "inventory_released": True,
-            }
-
-        except httpx.TimeoutException:
-            payment_timed_out = True
-            if attempt >= max_retries:
-                break
-
-    # Payment gateway timed out after all attempts
     return {
-        "status": "PAYMENT_PENDING",
-        "status_code": 202,
-        "inventory_hold_minutes": 15,
-        "payment_pending": True,
-        "message": "Payment confirmation is in progress",
-        "retry_count": attempt,
+        "status": "PAYMENT_FAILED",
+        "status_code": 402,
+        "decline_reason": pay_data.get("reason"),
+        "inventory_released": True,
     }
 
 
