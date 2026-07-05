@@ -108,12 +108,14 @@ order-api/
 │   ├── issue-10-three-tier-architecture.md
 │   ├── issue-11-non-human-callers.md
 │   ├── issue-12-skill-review.md
-│   └── issue-13-skill-audit.md
+│   ├── issue-13-skill-audit.md
+│   └── issue-14-memory-wall.md
 ├── docs/
 │   ├── spec-audit-framework.md          # Reusable spec audit framework (Issue #8)
 │   ├── skill-review-checklist.md        # Five-dimension skill review checklist (Issue #12)
 │   ├── skill-pr-template.md             # PR template for skill version control (Issue #12)
 │   ├── skill-audit-template.md          # Reusable prompt library audit template (Issue #13)
+│   ├── layer3-artifact-map.md           # Failure mode → artifact type map (Issue #14)
 │   ├── prompts/
 │   │   └── prompt-gherkin-scenario-quality.md  # Raw prompt (before state, Issue #9)
 │   └── skills/
@@ -185,6 +187,7 @@ Each newsletter issue has a corresponding findings file documenting what the age
 | [#11 — Non-human callers](findings/issue-11-non-human-callers.md)                  | Stress-tested Gherkin skill v1.1; built agent-safe v2 with four guards | A human-friendly skill is dangerous at agent scale not because it produces wrong output — it produces output that looks indistinguishably right — but because it always gives you something useful and never tells you when useful is the wrong thing to give. |
 | [#12 — Skill review](findings/issue-12-skill-review.md)                             | Built five-dimension skill review framework; applied it to v1.1 and v2.0 | Stress tests prove a skill works when called. Review proves the skill is ready to be called. Both descriptions exceed 120 characters in the routing signal — a finding that behavioral stress testing cannot reach. |
 | [#13 — Skill audit](findings/issue-13-skill-audit.md)                               | Full prompt library inventory; three skill conversions; reusable audit template | Five step definition conventions followed across twelve issues were never written down. The audit found them, named them, and converted them to a skill in the final session of Layer 2. |
+| [#14 — Memory wall](findings/issue-14-memory-wall.md)                               | Agent failure taxonomy; Layer 3 artifact map; project exposure assessment | Agents operating on systems with real history fail in four specific, nameable ways — and none of the four are prevented by the spec or skill layers alone. Layer 3 is the infrastructure for what must not change. |
 
 ---
 
@@ -248,6 +251,25 @@ why-this-matters-writing.md at Tier 3 pending its documented promotion criteria.
 
 ---
 
+## Layer 3 begins — Stewardship Infrastructure
+
+Issue #14 opens the third layer with a research and documentation session. No new implementation. The deliverable is a concrete taxonomy of agent failure modes and a map of the artifacts that prevent them.
+
+**What Layer 3 asks:** What happens when agents operate in systems with real history — decisions made years ago, undocumented invariants, production environments that look identical to staging until they aren't? The spec layer tells agents what to build. The skill layer tells agents how to reason. Neither answers: what must never change, what happened before the agent arrived, or which external systems it is silently affecting.
+
+**The four failure modes (Issue #14):**
+
+| Failure mode | Definition | Artifact that prevents it |
+|---|---|---|
+| Production blindness | Agent cannot distinguish production from non-production resources | Environment discrimination in CLAUDE.md |
+| Historical amnesia | Agent cannot access decisions made before the current session | Architecture Decision Records |
+| Dependency ignorance | Agent does not know what external systems it is affecting | Dependency map + external service contracts |
+| Invariant blindness | Agent does not know which properties must remain true | Invariant documentation + Evals |
+
+**Project-specific exposure:** All four failure modes apply to this project as of Issue #13. The findings files are too narrative to be queryable. The skills govern how agents produce output; they do not govern what agents must not change. The Gherkin spec constrains behavior; it does not constrain implementation structure. See `docs/layer3-artifact-map.md` for the build plan.
+
+---
+
 ## Skill review framework
 
 Issue #12 built the review process that should precede every skill version bump. Two documents:
@@ -293,4 +315,4 @@ If you found the repo useful, the newsletter is where the full context lives —
 
 ---
 
-_Repo current as of Issue #13 — Layer 2 complete._
+_Repo current as of Issue #14 — Layer 3 begins._
