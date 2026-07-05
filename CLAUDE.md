@@ -340,6 +340,21 @@ and then reverting is more expensive than running it before.
 
 ---
 
+## Pre-flight evals
+
+Before taking any of the following actions, run the corresponding eval and answer all
+questions before proceeding. A HALT instruction in an eval must not be overridden by task
+urgency, confidence in the change, or prior approval of similar changes. HALT means flag
+to the human author and wait.
+
+| Action | Eval |
+|---|---|
+| Modifying `ci.yml`, `CLAUDE.md`, or any file in `docs/skills/` or `docs/ADR/` | `docs/evals/eval-environment.md` |
+| Modifying `app/main.py` or any file in `tests/` | `docs/evals/eval-operation-scope.md` |
+| Modifying any file in `wiremock/` or `pacts/` | `docs/evals/eval-contract-preflight.md` |
+
+---
+
 ## External dependencies
 
 | Service | Simulated by | Port | Mapping dir |
