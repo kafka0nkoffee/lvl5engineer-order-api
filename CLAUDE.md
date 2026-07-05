@@ -147,7 +147,7 @@ inventory and payment simultaneously, then cancels the payment if inventory fail
 the Gherkin scenario while violating this invariant — because the gateway receives a charge
 request before the inventory result is known.
 
-ADR reference: ADR-001 (planned — Issue #16)
+ADR reference: `docs/ADR/ADR-001-inventory-before-payment.md`
 
 ---
 
@@ -166,7 +166,7 @@ Making it synchronous trades notification reliability for order confirmation rel
 This project has explicitly made the opposite choice. Any task asking to "ensure
 notifications are delivered before confirming the order" violates this invariant.
 
-ADR reference: ADR-002 (planned — Issue #16); see also `findings/issue-07-scope-problem.md`
+ADR reference: `docs/ADR/ADR-002-fire-and-forget-notification.md`; see also `findings/issue-07-scope-problem.md`
 
 ---
 
@@ -313,8 +313,8 @@ this index, there is no documented decision — flag it to the human rather than
 
 | Topic | Decision location |
 |---|---|
-| Inventory-before-payment call ordering | Invariant 1 (this document); ADR-001 (Issue #16) |
-| Fire-and-forget notification design | Invariant 2 (this document); `findings/issue-07-scope-problem.md` |
+| Inventory-before-payment call ordering | `docs/ADR/ADR-001-inventory-before-payment.md` |
+| Fire-and-forget notification design | `docs/ADR/ADR-002-fire-and-forget-notification.md` |
 | Mock server lifecycle ownership | Invariant 5 (this document); `findings/issue-06-cicd-guardrails.md` |
 | Payment retry cap (2 total attempts) | Invariant 4 (this document); `findings/issue-08-spec-audit.md` |
 | Pact as authoritative contract mechanism | Invariant 3 (this document); `findings/issue-04-pact-contract-testing.md` |
@@ -324,6 +324,19 @@ this index, there is no documented decision — flag it to the human rather than
 | Session initialization protocol | `docs/skills/tier2/session-start-protocol.md` |
 | Gherkin quality standard | `docs/skills/tier2/gherkin-scenario-quality-v2.md` |
 | Layer 3 artifact build order | `docs/layer3-artifact-map.md` |
+
+### Before modifying covered code paths
+
+If you are about to modify code covered by an ADR in `docs/ADR/`, you must:
+
+1. Read the relevant ADR in full before writing any code
+2. Answer all Agent check questions in the ADR — each must be answerable YES to proceed
+3. Verify that no entry in the ADR's Consequence table will be triggered by your change
+4. If an Agent check question cannot be answered YES, stop and flag the issue to the human
+   rather than proceeding or modifying the test to make it pass
+
+The ADR check is a pre-flight, not a post-hoc review. Running it after implementation
+and then reverting is more expensive than running it before.
 
 ---
 
