@@ -109,13 +109,18 @@ order-api/
 │   ├── issue-11-non-human-callers.md
 │   ├── issue-12-skill-review.md
 │   ├── issue-13-skill-audit.md
-│   └── issue-14-memory-wall.md
+│   ├── issue-14-memory-wall.md
+│   └── issue-15-claude-md.md
 ├── docs/
 │   ├── spec-audit-framework.md          # Reusable spec audit framework (Issue #8)
 │   ├── skill-review-checklist.md        # Five-dimension skill review checklist (Issue #12)
 │   ├── skill-pr-template.md             # PR template for skill version control (Issue #12)
 │   ├── skill-audit-template.md          # Reusable prompt library audit template (Issue #13)
 │   ├── layer3-artifact-map.md           # Failure mode → artifact type map (Issue #14)
+│   ├── claude-md-versions/             # Naive/better/production-grade comparison (Issue #15)
+│   │   ├── naive.md
+│   │   ├── better.md
+│   │   └── production-grade.md
 │   ├── prompts/
 │   │   └── prompt-gherkin-scenario-quality.md  # Raw prompt (before state, Issue #9)
 │   └── skills/
@@ -188,6 +193,7 @@ Each newsletter issue has a corresponding findings file documenting what the age
 | [#12 — Skill review](findings/issue-12-skill-review.md)                             | Built five-dimension skill review framework; applied it to v1.1 and v2.0 | Stress tests prove a skill works when called. Review proves the skill is ready to be called. Both descriptions exceed 120 characters in the routing signal — a finding that behavioral stress testing cannot reach. |
 | [#13 — Skill audit](findings/issue-13-skill-audit.md)                               | Full prompt library inventory; three skill conversions; reusable audit template | Five step definition conventions followed across twelve issues were never written down. The audit found them, named them, and converted them to a skill in the final session of Layer 2. |
 | [#14 — Memory wall](findings/issue-14-memory-wall.md)                               | Agent failure taxonomy; Layer 3 artifact map; project exposure assessment | Agents operating on systems with real history fail in four specific, nameable ways — and none of the four are prevented by the spec or skill layers alone. Layer 3 is the infrastructure for what must not change. |
+| [#15 — Production-grade CLAUDE.md](findings/issue-15-claude-md.md)                  | Three CLAUDE.md versions built and compared; root CLAUDE.md upgraded | The gap between "works without catastrophic failures" and "production-grade" is not about volume — it's about the difference between describing current behavior and constraining future behavior. |
 
 ---
 
@@ -266,7 +272,9 @@ Issue #14 opens the third layer with a research and documentation session. No ne
 | Dependency ignorance | Agent does not know what external systems it is affecting | Dependency map + external service contracts |
 | Invariant blindness | Agent does not know which properties must remain true | Invariant documentation + Evals |
 
-**Project-specific exposure:** All four failure modes apply to this project as of Issue #13. The findings files are too narrative to be queryable. The skills govern how agents produce output; they do not govern what agents must not change. The Gherkin spec constrains behavior; it does not constrain implementation structure. See `docs/layer3-artifact-map.md` for the build plan.
+**Project-specific exposure:** All four failure modes applied to this project as of Issue #13. The findings files were too narrative to be queryable. The skills governed how agents produced output but not what they must not change. The Gherkin spec constrained behavior but not implementation structure. See `docs/layer3-artifact-map.md` for the build plan.
+
+**Issue #15 — Production-grade CLAUDE.md:** Built three versions of CLAUDE.md (naive, better, production-grade) as a comparison artifact. Replaced the root `CLAUDE.md` with the production-grade version, which adds five required sections: project scope boundaries, environment discrimination, architectural invariants, external service contracts, and a decision index. The production-grade version passes all four failure mode tests; the naive version fails all four; the better version fails one (invariant blindness). See `findings/issue-15-claude-md.md` and `docs/claude-md-versions/` for the full comparison.
 
 ---
 
@@ -315,4 +323,4 @@ If you found the repo useful, the newsletter is where the full context lives —
 
 ---
 
-_Repo current as of Issue #14 — Layer 3 begins._
+_Repo current as of Issue #15 — CLAUDE.md upgraded to production-grade._
