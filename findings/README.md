@@ -27,6 +27,7 @@ protocol defined in `CLAUDE.md`. They are the raw material for each newsletter i
 | #15   | The production-grade CLAUDE.md: three versions compared  | [issue-15-claude-md.md](issue-15-claude-md.md)                 |
 | #16   | ADRs: making decisions agent-readable; dangerous improvement demonstrated | [issue-16-adrs.md](issue-16-adrs.md) |
 | #17   | Evals as guardrails: testing the situation, not the agent | [issue-17-evals.md](issue-17-evals.md) |
+| #18   | Runbooks as infrastructure: what agents need that humans don't | [issue-18-runbooks.md](issue-18-runbooks.md) |
 
 ---
 

@@ -112,7 +112,8 @@ order-api/
 │   ├── issue-14-memory-wall.md
 │   ├── issue-15-claude-md.md
 │   ├── issue-16-adrs.md
-│   └── issue-17-evals.md
+│   ├── issue-17-evals.md
+│   └── issue-18-runbooks.md
 ├── docs/
 │   ├── spec-audit-framework.md          # Reusable spec audit framework (Issue #8)
 │   ├── skill-review-checklist.md        # Five-dimension skill review checklist (Issue #12)
@@ -126,6 +127,9 @@ order-api/
 │   │   ├── eval-environment.md
 │   │   ├── eval-operation-scope.md
 │   │   └── eval-contract-preflight.md
+│   └── runbooks/                       # Incident runbooks (Issue #18)
+│       ├── payment-gateway-degraded-human.md
+│       └── payment-gateway-degraded-agent.md
 │   ├── claude-md-versions/             # Naive/better/production-grade comparison (Issue #15)
 │   │   ├── naive.md
 │   │   ├── better.md
@@ -205,6 +209,7 @@ Each newsletter issue has a corresponding findings file documenting what the age
 | [#15 — Production-grade CLAUDE.md](findings/issue-15-claude-md.md)                  | Three CLAUDE.md versions built and compared; root CLAUDE.md upgraded | The gap between "works without catastrophic failures" and "production-grade" is not about volume — it's about the difference between describing current behavior and constraining future behavior. |
 | [#16 — Architecture Decision Records](findings/issue-16-adrs.md)                     | ADR-001 and ADR-002 built; dangerous improvement demonstrated and reverted | A human-facing ADR documents the past. An agent-readable ADR constrains the future. The dangerous improvements section is the structural difference. |
 | [#17 — Evals as guardrails](findings/issue-17-evals.md)                               | Three pre-flight evals built; four task demonstrations run | The most dangerous change in this session passes all 15 tests. Task 4 (synchronous notification) would cause a complete order processing outage on the first notification service incident — and no behavioral test asserts asynchrony. The eval is the only protection. |
+| [#18 — Runbooks as infrastructure](findings/issue-18-runbooks.md)                     | Two runbook formats compared; dry run executed; one gap found and fixed | "Consider adjusting the timeout if the gateway is slow" is the instruction that earns Issue #18. An agent increases PAYMENT_TIMEOUT_SECONDS above the stub delay, changes the code path from TimeoutException to response handling, breaks Scenario 5, and closes the incident as resolved. The human-facing runbook enables this. The agent-facing runbook prevents it. |
 
 ---
 
@@ -291,6 +296,8 @@ Issue #14 opens the third layer with a research and documentation session. No ne
 
 **Issue #17 — Evals as guardrails:** Built three pre-flight evals: `docs/evals/eval-environment.md` (fires before touching infrastructure files — `ci.yml`, `CLAUDE.md`, skill files, ADRs), `docs/evals/eval-operation-scope.md` (fires before touching `app/main.py` or `tests/`), and `docs/evals/eval-contract-preflight.md` (fires before touching `wiremock/` stubs or `pacts/`). The session ran all three evals against four task descriptions and documented which question fires, what the agent is instructed to do, and whether each task would have caused a production failure without the eval. Key finding: Task 4 (making the notification call synchronous) passes all 15 tests, looks like an improvement, and causes a complete order processing outage on the first notification service incident. No behavioral test asserts that the notification call is asynchronous — the eval is the only protection. Added the "Pre-flight evals" section to CLAUDE.md with the action-to-eval mapping table.
 
+**Issue #18 — Runbooks as infrastructure:** Built two versions of the same payment gateway degradation runbook — human-facing (`docs/runbooks/payment-gateway-degraded-human.md`) and agent-facing (`docs/runbooks/payment-gateway-degraded-agent.md`). The human-facing version is realistic and good — the kind a competent on-call engineer would write and follow. The five judgment calls identified in it are invisible to a human operator because they are automatically filled in by context the human carries. They are not invisible to an agent. The critical judgment call: "Consider adjusting the timeout configuration if the gateway is responding slowly." An agent increases `PAYMENT_TIMEOUT_SECONDS` to 7 (above the stub's 6000ms delay), the stub responds before the client times out, the code returns `PAYMENT_FAILED` instead of `PAYMENT_PENDING`, Scenario 5 fails, and the agent closes the incident as resolved. The agent-facing runbook prevents this with an explicit worst-case latency formula and a verification step that catches the broken code path before the incident is closed. Dry run was actually executed — one gap found: `-k timeout` selects 0 tests (test name uses "times_out"). Fixed in the runbook.
+
 ---
 
 ## Skill review framework
@@ -338,4 +345,4 @@ If you found the repo useful, the newsletter is where the full context lives —
 
 ---
 
-_Repo current as of Issue #17 — Three pre-flight evals built; test-vs-eval distinction documented._
+_Repo current as of Issue #18 — Two runbook formats compared; Layer 3 complete._
