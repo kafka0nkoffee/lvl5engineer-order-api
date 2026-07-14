@@ -126,8 +126,11 @@ order-api/
 │   ├── issue-16-adrs.md
 │   ├── issue-17-evals.md
 │   ├── issue-18-runbooks.md
-│   └── issue-20-productivity-jcurve.md
+│   ├── issue-20-productivity-jcurve.md
+│   └── spinoff-okf-conversion.md       # OKF conversion experiment (Spin-off)
 ├── docs/
+│   ├── index.md                         # OKF bundle root index (Spin-off)
+│   ├── log.md                           # Bundle update history (Spin-off)
 │   ├── spec-audit-framework.md          # Reusable spec audit framework (Issue #8)
 │   ├── skill-review-checklist.md        # Five-dimension skill review checklist (Issue #12)
 │   ├── skill-pr-template.md             # PR template for skill version control (Issue #12)
@@ -135,13 +138,16 @@ order-api/
 │   ├── layer3-artifact-map.md           # Failure mode → artifact type map (Issue #14)
 │   ├── jcurve-conditions-framework.md  # When does infra investment pay off? (Issue #20)
 │   ├── ADR/                            # Architecture Decision Records (Issue #16)
+│   │   ├── index.md                    # OKF ADR index (Spin-off)
 │   │   ├── ADR-001-inventory-before-payment.md
 │   │   └── ADR-002-fire-and-forget-notification.md
 │   ├── evals/                          # Pre-flight evals (Issue #17)
+│   │   ├── index.md                    # OKF evals index (Spin-off)
 │   │   ├── eval-environment.md
 │   │   ├── eval-operation-scope.md
 │   │   └── eval-contract-preflight.md
 │   └── runbooks/                       # Incident runbooks (Issue #18)
+│       ├── index.md                    # OKF runbooks index (Spin-off)
 │       ├── payment-gateway-degraded-human.md
 │       └── payment-gateway-degraded-agent.md
 │   ├── claude-md-versions/             # Naive/better/production-grade comparison (Issue #15)
@@ -151,15 +157,19 @@ order-api/
 │   ├── prompts/
 │   │   └── prompt-gherkin-scenario-quality.md  # Raw prompt (before state, Issue #9)
 │   └── skills/
+│       ├── index.md                    # OKF skills index (Spin-off)
 │       ├── tier1/
+│       │   ├── index.md               # OKF tier1 index (Spin-off)
 │       │   └── output-formatting-standard.md   # Org-wide formatting standard (Issue #10)
 │       ├── tier2/
+│       │   ├── index.md               # OKF tier2 index (Spin-off)
 │       │   ├── gherkin-scenario-quality.md     # DEPRECATED — use v2 (Issue #13)
 │       │   ├── gherkin-scenario-quality-v2.md  # Agent-safe v2 with four guards (Issue #11)
 │       │   ├── session-start-protocol.md       # Session initialization protocol (Issue #13)
 │       │   ├── feature-file-audit.md           # Spec debt audit skill (Issue #13)
 │       │   └── step-definition-style.md        # pytest-bdd step conventions (Issue #13)
 │       └── tier3/
+│           ├── index.md               # OKF tier3 index (Spin-off)
 │           └── why-this-matters-writing.md     # Personal workflow: findings paragraphs (Issue #10)
 ├── CLAUDE.md                            # Agent standing orders
 └── pytest.ini
@@ -226,6 +236,7 @@ Each newsletter issue has a corresponding findings file documenting what the age
 | [#18 — Runbooks as infrastructure](findings/issue-18-runbooks.md)                     | Two runbook formats compared; dry run executed; one gap found and fixed | "Consider adjusting the timeout if the gateway is slow" is the instruction that earns Issue #18. An agent increases PAYMENT_TIMEOUT_SECONDS above the stub delay, changes the code path from TimeoutException to response handling, breaks Scenario 5, and closes the incident as resolved. The human-facing runbook enables this. The agent-facing runbook prevents it. |
 | [#19 — Full stack assembly](findings/issue-19-full-stack.md)                           | Order cancellation built end-to-end using all three layers simultaneously | The Gherkin quality skill caught 10 UNDERSPECIFIED items before implementation — including the `"is released"` pattern that would have produced another `inventory_released: true` flag (the same gap Issue #8 found). ADR-002 extended the fire-and-forget invariant to a new code path no existing test covers. Two implicit decisions survived all three layers: inventory release body format and test state seeding. Both are in the API-design layer below behavioral specs and above code. |
 | [#20 — Productivity J-curve](findings/issue-20-productivity-jcurve.md)                  | Documentation-only retrospective: time audit, overhead taxonomy, J-curve measurement, six honest answers | 36% of 54 total session hours went to pure infrastructure. Zero features in 10 consecutive sessions. ROI is negative on a pure-efficiency basis, positive on a risk-adjusted basis, positive-compounding on a knowledge-transfer basis. The infrastructure pays off when the failure modes it prevents are real and the project runs long enough to encounter them. |
+| [Spin-off — OKF conversion](findings/spinoff-okf-conversion.md)                         | Converted all 24 docs/ files to OKF v0.1; ran two-agent comparison experiment | OKF gives an agent a view of what it doesn't know. CLAUDE.md's direct pointers are faster; OKF's index hierarchy is more complete. The right architecture is both: CLAUDE.md for routing and behavioral instructions, OKF for structural completeness and cross-linking. |
 
 ---
 
@@ -363,4 +374,4 @@ If you found the repo useful, the newsletter is where the full context lives —
 
 ---
 
-_Repo current as of Issue #20 — Productivity J-curve retrospective: 19 sessions audited, J-curve conditions framework published._
+_Repo current as of Spin-off OKF — All 24 docs/ files converted to OKF v0.1 conformant bundle; two-agent comparison experiment run; CLAUDE.md + OKF architecture documented._

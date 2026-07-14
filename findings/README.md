@@ -30,6 +30,7 @@ protocol defined in `CLAUDE.md`. They are the raw material for each newsletter i
 | #18   | Runbooks as infrastructure: what agents need that humans don't | [issue-18-runbooks.md](issue-18-runbooks.md) |
 | #19   | Full stack assembly: order cancellation end-to-end with all three layers | [issue-19-full-stack.md](issue-19-full-stack.md) |
 | #20   | Productivity J-curve: was the infrastructure investment worth it? | [issue-20-productivity-jcurve.md](issue-20-productivity-jcurve.md) |
+| Spin-off | OKF conversion: converting the order-api to Open Knowledge Format | [spinoff-okf-conversion.md](spinoff-okf-conversion.md) |
 
 ---
 
