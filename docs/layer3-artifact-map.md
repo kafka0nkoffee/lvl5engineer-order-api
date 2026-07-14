@@ -1,3 +1,11 @@
+---
+type: Reference
+title: "Layer 3 Artifact Map"
+description: "Maps the four agent failure modes from Issue #14 to the five artifact types built in Issues #15–18."
+tags: [reference, layer-3, failure-modes, artifact-map]
+timestamp: 2026-07-05
+---
+
 # Layer 3 Artifact Map
 
 **Layer:** 3 — Stewardship Infrastructure

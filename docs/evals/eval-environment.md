@@ -1,3 +1,11 @@
+---
+type: Guardrail
+title: "Eval: Environment"
+description: "Pre-flight check intercepting modifications to shared production resources: ci.yml, CLAUDE.md, docs/skills/, and docs/ADR/."
+tags: [eval, pre-flight, environment, infrastructure]
+timestamp: 2026-06-16
+---
+
 # Eval: Environment
 
 > This eval runs before any agent action that modifies infrastructure files:
@@ -157,3 +165,13 @@ depends on their familiarity with the pytest session fixture design.
 The eval does not automatically prevent the issue. It forces the agent to make
 the change visible and consequence-explicit before committing, which surfaces
 the double-start problem to human review instead of to CI failure.
+
+---
+
+## Related
+
+* [ADR-001: Inventory Before Payment](../ADR/ADR-001-inventory-before-payment.md) — decision this eval protects via shared-production-resource classification of docs/ADR/
+* [ADR-002: Fire-and-Forget Notification](../ADR/ADR-002-fire-and-forget-notification.md) — decision this eval protects via shared-production-resource classification of docs/ADR/
+* [Skill Review Checklist](../skill-review-checklist.md) — process for publishing skill changes that this eval intercepts
+* CLAUDE.md Section 2 — environment discrimination section this eval operationalises
+* CLAUDE.md Pre-flight evals table — routing entry that triggers this eval

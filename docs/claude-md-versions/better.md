@@ -1,3 +1,11 @@
+---
+type: Reference
+title: "CLAUDE.md — Better Version"
+description: "Pedagogical example of an improved CLAUDE.md incorporating permissions modeling, architectural decision references, and service descriptions."
+tags: [reference, claude-md, pedagogical, issue-15]
+timestamp: 2026-07-05
+---
+
 # CLAUDE.md — Better version
 
 > Reference document for Issue #15 newsletter article.

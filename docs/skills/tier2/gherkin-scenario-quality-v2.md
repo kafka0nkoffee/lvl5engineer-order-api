@@ -1,3 +1,11 @@
+---
+type: Methodology
+title: "Skill: Gherkin Scenario Quality (v2 — Agent-Safe)"
+description: "Evaluates and produces well-formed Gherkin scenarios using a five-question debt diagnostic, four pre-flight guards, and a minimal-change output contract."
+tags: [tier-2, skill, gherkin, agent-safe, bdd]
+timestamp: 2026-06-15
+---
+
 # Skill: Gherkin Scenario Quality (v2 — Agent-Safe)
 
 **Tier:** 2 — Domain methodology
@@ -272,3 +280,12 @@ This skill formalizes the methodology developed across:
 The v1.1 skill remains at `docs/skills/tier2/gherkin-scenario-quality.md` for reference and article comparison.
 
 For output formatting, apply `docs/skills/tier1/output-formatting-standard.md`.
+
+---
+
+## Related
+
+* [Output Formatting Standard](../tier1/output-formatting-standard.md) — apply after this skill produces scenarios; controls formatting, not content
+* [Spec Audit Framework](../../spec-audit-framework.md) — detailed reference for spec debt classification this skill operationalises
+* [Skill Review Checklist](../../skill-review-checklist.md) — used to review this skill before publishing updates
+* `findings/issue-11-non-human-callers.md` — stress test that produced the four pre-flight guards in v2

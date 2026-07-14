@@ -1,3 +1,11 @@
+---
+type: Reference
+title: "CLAUDE.md — Production-Grade Version"
+description: "Pedagogical example of a production-grade CLAUDE.md with environment discrimination, architectural invariants, and a decision index; identical to active root CLAUDE.md."
+tags: [reference, claude-md, pedagogical, issue-15]
+timestamp: 2026-07-05
+---
+
 # CLAUDE.md — Production-grade version
 
 > Reference document for Issue #15 newsletter article.

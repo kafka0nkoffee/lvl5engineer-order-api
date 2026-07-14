@@ -1,3 +1,11 @@
+---
+type: Decision
+title: "ADR-002: Notification Delivery Decoupled from Order Confirmation"
+description: "Notification calls must remain asynchronous fire-and-forget to prevent notification service outages from blocking order confirmations."
+tags: [adr, invariant, notification, async, fire-and-forget]
+timestamp: 2026-06-07
+---
+
 # ADR-002: Notification delivery decoupled from order confirmation
 
 **Status:** Accepted
@@ -170,3 +178,12 @@ If `notification_service.feature` Scenario 2 requires modification to pass after
 change: the spec was changed to accommodate the violation. This is a spec violation, not
 a code fix. Do not modify the notification service scenarios to make a synchronous
 implementation pass.
+
+---
+
+## Related
+
+* [Eval: Operation Scope](../evals/eval-operation-scope.md) — Q3 of this eval explicitly catches async→sync conversion before any code is written
+* [Runbook: Payment Gateway Degraded (Agent-Facing)](../runbooks/payment-gateway-degraded-agent.md) — references this ADR when deciding notification behavior during incidents
+* CLAUDE.md Section 3, Invariant 2 — standing order that references this ADR
+* `tests/features/notification_service.feature` Scenario 2 — behavioral enforcement of the decoupling property

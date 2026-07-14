@@ -1,3 +1,11 @@
+---
+type: Playbook
+title: "Runbook: Payment Gateway Degraded (Agent-Facing)"
+description: "Agent-executable runbook for responding to payment gateway degradation: slow responses, intermittent errors, or timeouts during order processing."
+tags: [runbook, incident-response, payment-gateway, agent-facing]
+timestamp: 2026-07-05
+---
+
 # Runbook: Payment Gateway Degraded (Agent-Facing)
 
 **Service:** Order API (port 8093)
@@ -394,3 +402,13 @@ was changed and why.
 
 If any of the five criteria are not met: document what is missing and stop.
 Do not mark the incident resolved.
+
+---
+
+## Related
+
+* [Eval: Operation Scope](../evals/eval-operation-scope.md) — run this eval before any timeout/retry configuration change (Section 3)
+* [Eval: Contract Pre-flight](../evals/eval-contract-preflight.md) — run this eval before any stub inspection or modification (Section 4)
+* [ADR-001: Inventory Before Payment](../ADR/ADR-001-inventory-before-payment.md) — relevant when payment gateway degradation triggers fallback orders
+* [ADR-002: Fire-and-Forget Notification](../ADR/ADR-002-fire-and-forget-notification.md) — notification behavior must not change during incident response
+* CLAUDE.md Section 4, Payment Gateway — external service contract for the payment gateway

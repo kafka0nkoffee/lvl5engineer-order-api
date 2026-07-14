@@ -1,3 +1,11 @@
+---
+type: Methodology
+title: "Skill: Session Start Protocol"
+description: "Initializes a new issue session by creating the findings file, updating the index, and confirming scope before the first tool call."
+tags: [tier-2, skill, session, initialization, findings]
+timestamp: 2026-06-16
+---
+
 # Skill: Session Start Protocol
 
 **Tier:** 2 — Domain methodology

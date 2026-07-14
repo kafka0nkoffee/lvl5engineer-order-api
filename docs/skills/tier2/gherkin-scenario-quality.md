@@ -1,3 +1,11 @@
+---
+type: Methodology
+title: "Skill: Gherkin Scenario Quality (v1.1 — deprecated)"
+description: "Deprecated human-facing Gherkin quality skill superseded by gherkin-scenario-quality-v2.md; preserved as before-state reference for Issue #12."
+tags: [tier-2, skill, gherkin, deprecated]
+timestamp: 2026-06-13
+---
+
 <!-- DEPRECATED: 2026-06-16 — superseded by gherkin-scenario-quality-v2.md (v2.0).
      Issue #12 review verdict: CHANGES REQUESTED.
      Do not use. Will be removed in Issue #14 session. -->

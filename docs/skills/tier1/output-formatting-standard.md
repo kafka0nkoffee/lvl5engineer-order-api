@@ -1,3 +1,11 @@
+---
+type: Methodology
+title: "Skill: Output Formatting Standard"
+description: "Applies consistent formatting to all agent output: findings files, Gherkin scenarios, commit messages, and code snippets in documentation."
+tags: [tier-1, skill, formatting, output-standard]
+timestamp: 2026-06-15
+---
+
 # Skill: Output Formatting Standard
 
 **Tier:** 1 — Org-wide standard

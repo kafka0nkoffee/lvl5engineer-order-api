@@ -1,3 +1,11 @@
+---
+type: Reference
+title: "Skill Review Checklist"
+description: "Five-dimension checklist for reviewing skill artifacts before publishing a new skill version; must be completed before any skill PR is approved."
+tags: [reference, skill-review, checklist, skill-governance]
+timestamp: 2026-06-16
+---
+
 # Skill Review Checklist
 
 **Version:** 1.0

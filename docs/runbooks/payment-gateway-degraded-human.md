@@ -1,3 +1,11 @@
+---
+type: Playbook
+title: "Runbook: Payment Gateway Degraded (Human-Facing)"
+description: "Human-executable runbook for responding to payment gateway degradation during order processing incidents."
+tags: [runbook, incident-response, payment-gateway, human-facing]
+timestamp: 2026-07-05
+---
+
 # Runbook: Payment Gateway Degraded
 
 **Service:** Order API (port 8093)

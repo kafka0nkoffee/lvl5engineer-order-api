@@ -1,3 +1,11 @@
+---
+type: Agent Standing Orders
+title: "CLAUDE.md — Order API Project Standing Orders"
+description: "Standing orders for all Claude Code sessions in the order-api project: environment discrimination, architectural invariants, external service contracts, and decision index."
+tags: [claude-md, session-context, agent-instructions, production-grade]
+timestamp: 2026-07-14
+---
+
 # CLAUDE.md
 
 > This file is read automatically by Claude Code at the start of every session.

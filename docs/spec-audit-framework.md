@@ -1,3 +1,11 @@
+---
+type: Reference
+title: "Spec Audit Framework"
+description: "Structured tool for finding spec debt in Gherkin feature files before it causes production incidents."
+tags: [reference, spec-audit, gherkin, spec-debt]
+timestamp: 2026-06-16
+---
+
 # Spec Audit Framework
 
 A structured tool for finding spec debt in Gherkin feature files before it causes production incidents.

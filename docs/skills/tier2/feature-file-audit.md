@@ -1,3 +1,11 @@
+---
+type: Methodology
+title: "Skill: Feature File Audit"
+description: "Audits Gherkin feature files for spec debt using a structured debt classification system before major implementation sessions."
+tags: [tier-2, skill, feature-file, spec-audit, gherkin]
+timestamp: 2026-06-16
+---
+
 # Skill: Feature File Audit
 
 **Tier:** 2 — Domain methodology

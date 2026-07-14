@@ -1,3 +1,11 @@
+---
+type: Methodology
+title: "Skill: Step Definition Style"
+description: "Applies consistent style conventions to pytest-bdd step definitions in tests/steps/, covering naming, scoping, and fixture patterns."
+tags: [tier-2, skill, step-definitions, pytest-bdd, testing]
+timestamp: 2026-06-16
+---
+
 # Skill: Step Definition Style
 
 **Tier:** 2 — Domain methodology

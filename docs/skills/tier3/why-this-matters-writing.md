@@ -1,3 +1,11 @@
+---
+type: Methodology
+title: "Skill: Why This Matters Paragraph Writing"
+description: "Writes the practitioner-voice 'Why this matters' paragraph in findings files for newsletter publication."
+tags: [tier-3, skill, writing, findings, newsletter]
+timestamp: 2026-06-15
+---
+
 # Skill: "Why This Matters" Paragraph Writing
 
 **Tier:** 3 — Personal workflow

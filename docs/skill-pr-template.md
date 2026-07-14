@@ -1,3 +1,11 @@
+---
+type: Reference
+title: "Skill PR Template"
+description: "Pull request template for publishing new skill versions, linking each section to the five-dimension skill review checklist."
+tags: [reference, skill-pr, template, skill-governance]
+timestamp: 2026-06-16
+---
+
 # Skill PR Template
 
 **Version:** 1.0

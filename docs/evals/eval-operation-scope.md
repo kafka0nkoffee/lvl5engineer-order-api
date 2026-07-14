@@ -1,3 +1,11 @@
+---
+type: Guardrail
+title: "Eval: Operation Scope"
+description: "Pre-flight check intercepting modifications to app/main.py and tests/, ensuring changes stay within the intended scope of the current task."
+tags: [eval, pre-flight, operation-scope, implementation]
+timestamp: 2026-06-16
+---
+
 # Eval: Operation Scope
 
 > This eval runs before any agent action that modifies `app/main.py` or any
@@ -217,3 +225,13 @@ call is asynchronous. An agent that makes the notification call synchronous
 will see all 15 tests pass — and the production failure will only appear when
 the notification service has its first outage. Q3 catches this class of violation
 before any test is run.
+
+---
+
+## Related
+
+* [ADR-001: Inventory Before Payment](../ADR/ADR-001-inventory-before-payment.md) — Q1 and Q2 of this eval enforce ADR-001's invariant
+* [ADR-002: Fire-and-Forget Notification](../ADR/ADR-002-fire-and-forget-notification.md) — Q3 of this eval enforces ADR-002's invariant
+* [Runbook: Payment Gateway Degraded (Agent-Facing)](../runbooks/payment-gateway-degraded-agent.md) — references this eval in Section 3 (timeout adjustment)
+* CLAUDE.md Section 3, Invariants 1–4 — all four invariants that Q1 checks against
+* CLAUDE.md Pre-flight evals table — routing entry that triggers this eval

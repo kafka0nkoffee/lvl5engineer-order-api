@@ -1,3 +1,11 @@
+---
+type: Guardrail
+title: "Eval: Contract Pre-flight"
+description: "Pre-flight check intercepting modifications to WireMock stubs and Pact files to prevent contract drift between consumer and provider."
+tags: [eval, pre-flight, pact, wiremock, contract]
+timestamp: 2026-06-16
+---
+
 # Eval: Contract Pre-flight
 
 > This eval runs before any agent action that modifies WireMock stub files in
@@ -240,3 +248,12 @@ modified. The Gherkin test catches it after. The eval also catches the
 5100ms case (a reduction from 6000ms that stays above the 5000ms threshold)
 where the Gherkin test passes unreliably — an intermittent failure the eval
 prevents before the margin is reduced.
+
+---
+
+## Related
+
+* [ADR-001: Inventory Before Payment](../ADR/ADR-001-inventory-before-payment.md) — payment gateway contract whose stub this eval protects
+* [Runbook: Payment Gateway Degraded (Agent-Facing)](../runbooks/payment-gateway-degraded-agent.md) — references this eval in Section 4 (stub inspection step)
+* CLAUDE.md Section 3, Invariant 3 — Pact-as-authoritative-contract invariant this eval enforces
+* CLAUDE.md Pre-flight evals table — routing entry that triggers this eval

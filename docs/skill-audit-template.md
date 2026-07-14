@@ -1,3 +1,11 @@
+---
+type: Reference
+title: "Prompt Library Audit Template"
+description: "Reusable template for auditing accumulated prompt material in any AI-assisted project: what to look for, how to classify, how to decide."
+tags: [reference, audit, prompt-library, skill-governance]
+timestamp: 2026-06-16
+---
+
 # Prompt Library Audit Template
 
 **Version:** 1.0

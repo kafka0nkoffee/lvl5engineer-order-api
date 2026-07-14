@@ -1,3 +1,11 @@
+---
+type: Reference
+title: "Prompt: Gherkin Scenario Quality Check (Deprecated)"
+description: "Deprecated inline prompt predecessor to the Gherkin quality skill; preserved as before-state reference showing what lived in CLAUDE.md before the skill was extracted."
+tags: [reference, deprecated, gherkin, prompt-history]
+timestamp: 2026-06-16
+---
+
 <!-- DEPRECATED: 2026-06-16 — superseded by docs/skills/tier2/gherkin-scenario-quality-v2.md.
      Do not use. Will be removed in Issue #14 session. -->
 

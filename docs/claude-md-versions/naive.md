@@ -1,3 +1,11 @@
+---
+type: Reference
+title: "CLAUDE.md — Naive Version"
+description: "Pedagogical example of the CLAUDE.md most projects start with on day one, before operational experience shapes the failure modes."
+tags: [reference, claude-md, pedagogical, issue-15]
+timestamp: 2026-07-05
+---
+
 # CLAUDE.md — Naive version
 
 > Reference document for Issue #15 newsletter article.

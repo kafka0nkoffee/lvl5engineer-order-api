@@ -1,3 +1,11 @@
+---
+type: Reference
+title: "The J-Curve Conditions Framework"
+description: "Decision framework for predicting whether infrastructure-first AI-assisted development will return its investment cost in a given project."
+tags: [reference, j-curve, infrastructure, productivity, roi]
+timestamp: 2026-07-14
+---
+
 # The J-Curve Conditions Framework
 
 > When does infrastructure-first AI-assisted development pay off?  

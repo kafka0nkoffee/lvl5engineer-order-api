@@ -1,3 +1,11 @@
+---
+type: Decision
+title: "ADR-001: Inventory Checked Before Payment Attempted"
+description: "Inventory availability must be confirmed before any payment gateway call is initiated for the same order."
+tags: [adr, invariant, inventory, payment, order-creation]
+timestamp: 2026-05-01
+---
+
 # ADR-001: Inventory checked before payment attempted
 
 **Status:** Accepted
@@ -162,3 +170,12 @@ review this ADR before committing:
 If Scenario 3 passes but the step "And the payment gateway is never called" was removed
 or rewritten: the test no longer verifies the invariant. This is a spec violation, not
 a code fix. Do not modify Scenario 3 to make a concurrent implementation pass.
+
+---
+
+## Related
+
+* [Eval: Operation Scope](../evals/eval-operation-scope.md) — pre-flight check that enforces this decision before any change to `app/main.py`
+* [Gherkin Scenario Quality v2](../skills/tier2/gherkin-scenario-quality-v2.md) — skill for writing Scenarios 3 and 4 that test this invariant
+* CLAUDE.md Section 3, Invariant 1 — standing order that references this ADR
+* `tests/features/order_creation.feature` Scenarios 3 and 4 — behavioral enforcement of this decision
