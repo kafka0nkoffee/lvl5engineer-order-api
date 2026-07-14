@@ -1,0 +1,10 @@
+{
+  "request": {
+    "method": "POST",
+    "url": "/inventory/release/success"
+  },
+  "response": {
+    "status": 200,
+    "body": "{\"released\": true}"
+  }
+}
