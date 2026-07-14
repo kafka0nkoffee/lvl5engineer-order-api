@@ -22,15 +22,15 @@ Every file in this repo was built by AI agents working from external Gherkin sce
 
 A FastAPI order management service, built entirely from Gherkin specs by Claude Code agents, with:
 
-- **WireMock-compatible stubs** for payment gateway and inventory service
-- **Gherkin BDD test suite** (pytest-bdd) covering 5 core order scenarios
-- **Pact contract tests** for both downstream dependencies, with provider verification
+- **WireMock-compatible stubs** for payment gateway, inventory service, and notification service
+- **Gherkin BDD test suite** (pytest-bdd) covering 5 order creation + 5 cancellation scenarios
+- **Pact contract tests** for both downstream dependencies (4 interactions for inventory including release), with provider verification
 - **Bounded service specs** — notification service isolated in its own feature file
 - **Four-job GitHub Actions CI/CD pipeline**: Gherkin → Pact consumer → Pact provider → can-i-deploy
 - **Spec audit framework** — a reusable tool for diagnosing and classifying spec debt
 - **Skills infrastructure** — 3-tier skill architecture (org-wide, domain, personal) with output contracts
 
-The five Gherkin scenarios:
+The order creation scenarios (POST /orders):
 
 1. Happy path — payment accepted, all items in stock → `CONFIRMED`
 2. Payment declined → `PAYMENT_FAILED` (402), inventory released
@@ -38,7 +38,15 @@ The five Gherkin scenarios:
 4. Partial availability → `PARTIAL_UNAVAILABLE` (207), no auto-confirm, payment never called
 5. Payment timeout → `PAYMENT_PENDING` (202), inventory held 15 mins, max 2 retry attempts
 
-Current state: **11 Gherkin tests passing, 4 Pact tests passing, all contracts verified.**
+The order cancellation scenarios (DELETE /orders/{order_id}):
+
+1. Happy path — CONFIRMED order cancelled → `CANCELLED`, inventory released, notification sent
+2. Idempotency — already-cancelled order → `CANCELLED` (200), no double-release
+3. Not found → 404, inventory not touched
+4. PAYMENT_PENDING order → 409, cannot cancel
+5. PAYMENT_FAILED order → 409, cannot cancel
+
+Current state: **16 Gherkin tests passing, 4 Pact tests passing, all contracts verified.**
 
 ---
 
@@ -58,7 +66,7 @@ If you write Gherkin, design BDD frameworks, or work in test automation, Issues 
 ```
 order-api/
 ├── app/
-│   ├── main.py                          # FastAPI order service
+│   ├── main.py                          # FastAPI order service (POST /orders + DELETE /orders/{id})
 │   └── notification_service.py          # Notification endpoint (Issue #7)
 ├── mock_server.py                       # WireMock-compatible mock server
 ├── wiremock/
@@ -69,19 +77,23 @@ order-api/
 │   ├── inventory-mappings/              # Stub definitions for inventory service
 │   │   ├── inventory-all-available.json
 │   │   ├── inventory-out-of-stock.json
-│   │   └── inventory-partial.json
+│   │   ├── inventory-partial.json
+│   │   ├── inventory-release-success.json      # Order cancellation release (Issue #19)
+│   │   └── inventory-release-unavailable.json  # Release error scenario (Issue #19)
 │   └── notification-mappings/           # Stub definitions for notification service (Issue #7)
 │       ├── notification-success.json
 │       └── notification-unavailable.json
 ├── tests/
 │   ├── features/
 │   │   ├── order_creation.feature       # Gherkin scenarios — order creation
+│   │   ├── order_cancellation.feature   # Gherkin scenarios — order cancellation (Issue #19)
 │   │   ├── order_status_bad.feature     # Deliberately bad specs (Issue #5)
 │   │   ├── order_status_good.feature    # Rewritten good specs (Issue #5)
 │   │   └── notification_service.feature # Bounded notification spec (Issue #7)
 │   ├── steps/
-│   │   ├── conftest.py                  # Shared session-scoped server fixtures
+│   │   ├── conftest.py                  # Shared session-scoped server fixtures + shared step definitions
 │   │   ├── test_order_creation.py       # pytest-bdd step definitions
+│   │   ├── test_order_cancellation.py   # Step definitions for cancellation (Issue #19)
 │   │   ├── test_order_status_bad.py     # Steps for bad spec (Issue #5)
 │   │   ├── test_order_status_good.py    # Steps for good spec (Issue #5)
 │   │   └── test_notification_service.py # Steps for notification spec (Issue #7)
@@ -210,6 +222,7 @@ Each newsletter issue has a corresponding findings file documenting what the age
 | [#16 — Architecture Decision Records](findings/issue-16-adrs.md)                     | ADR-001 and ADR-002 built; dangerous improvement demonstrated and reverted | A human-facing ADR documents the past. An agent-readable ADR constrains the future. The dangerous improvements section is the structural difference. |
 | [#17 — Evals as guardrails](findings/issue-17-evals.md)                               | Three pre-flight evals built; four task demonstrations run | The most dangerous change in this session passes all 15 tests. Task 4 (synchronous notification) would cause a complete order processing outage on the first notification service incident — and no behavioral test asserts asynchrony. The eval is the only protection. |
 | [#18 — Runbooks as infrastructure](findings/issue-18-runbooks.md)                     | Two runbook formats compared; dry run executed; one gap found and fixed | "Consider adjusting the timeout if the gateway is slow" is the instruction that earns Issue #18. An agent increases PAYMENT_TIMEOUT_SECONDS above the stub delay, changes the code path from TimeoutException to response handling, breaks Scenario 5, and closes the incident as resolved. The human-facing runbook enables this. The agent-facing runbook prevents it. |
+| [#19 — Full stack assembly](findings/issue-19-full-stack.md)                           | Order cancellation built end-to-end using all three layers simultaneously | The Gherkin quality skill caught 10 UNDERSPECIFIED items before implementation — including the `"is released"` pattern that would have produced another `inventory_released: true` flag (the same gap Issue #8 found). ADR-002 extended the fire-and-forget invariant to a new code path no existing test covers. Two implicit decisions survived all three layers: inventory release body format and test state seeding. Both are in the API-design layer below behavioral specs and above code. |
 
 ---
 
@@ -298,6 +311,8 @@ Issue #14 opens the third layer with a research and documentation session. No ne
 
 **Issue #18 — Runbooks as infrastructure:** Built two versions of the same payment gateway degradation runbook — human-facing (`docs/runbooks/payment-gateway-degraded-human.md`) and agent-facing (`docs/runbooks/payment-gateway-degraded-agent.md`). The human-facing version is realistic and good — the kind a competent on-call engineer would write and follow. The five judgment calls identified in it are invisible to a human operator because they are automatically filled in by context the human carries. They are not invisible to an agent. The critical judgment call: "Consider adjusting the timeout configuration if the gateway is responding slowly." An agent increases `PAYMENT_TIMEOUT_SECONDS` to 7 (above the stub's 6000ms delay), the stub responds before the client times out, the code returns `PAYMENT_FAILED` instead of `PAYMENT_PENDING`, Scenario 5 fails, and the agent closes the incident as resolved. The agent-facing runbook prevents this with an explicit worst-case latency formula and a verification step that catches the broken code path before the incident is closed. Dry run was actually executed — one gap found: `-k timeout` selects 0 tests (test name uses "times_out"). Fixed in the runbook.
 
+**Issue #19 — Full stack assembly:** Built order cancellation (`DELETE /orders/{order_id}`) end-to-end using all three layers simultaneously. The Gherkin quality skill applied to first-draft scenarios caught 10 UNDERSPECIFIED items — including `"the inventory reservation is released"` (which would have become `inventory_released: true` in the response body again, repeating the Issue #8 gap) and `"an appropriate error"` (which would have left the 404 vs 409 decision to the agent). ADR-002 extended the fire-and-forget invariant to the new cancellation notification path, catching an invariant violation that no behavioral test covers. Two implicit decisions survived all three layers: the inventory release request body format and the test state seeding approach. These live in the API-design layer — below behavioral specification, above code — which the current three-layer infrastructure does not yet reach. The step-definition-style skill identified the correct shared-step pattern but was not consulted at the exact moment it was needed; the first test run failed on `StepDefinitionNotFoundError` and the second (after re-reading the skill) passed 16/16. See `findings/issue-19-full-stack.md`.
+
 ---
 
 ## Skill review framework
@@ -345,4 +360,4 @@ If you found the repo useful, the newsletter is where the full context lives —
 
 ---
 
-_Repo current as of Issue #18 — Two runbook formats compared; Layer 3 complete._
+_Repo current as of Issue #19 — Order cancellation built end-to-end using all three layers simultaneously._
