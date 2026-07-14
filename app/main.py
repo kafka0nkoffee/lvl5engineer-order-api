@@ -94,11 +94,13 @@ def create_order(req: OrderRequest):
 
             if pay_resp.status_code == 200:
                 order_id = str(uuid.uuid4())
+                total = sum(i.unit_price * i.quantity for i in req.items)
                 _orders[order_id] = {
                     "db_status": "CONFIRMED",
                     "order_created_at": datetime.utcnow().isoformat(),
+                    "user_id": req.user_id,
+                    "total": total,
                 }
-                total = sum(i.unit_price * i.quantity for i in req.items)
                 _fire_notification(req.user_id, order_id, total, req.notification_scenario)
                 return {
                     "status": "CONFIRMED",
@@ -141,3 +143,52 @@ def get_order_status(order_id: str):
         "placed_at": order["order_created_at"],
         "order_created_at": order["order_created_at"],
     }
+
+
+@app.delete("/orders/{order_id}")
+def cancel_order(
+    order_id: str,
+    release_scenario: str = "success",
+    cancellation_notification_scenario: str = "success",
+):
+    inventory_url = os.environ.get("INVENTORY_URL", "http://localhost:8092")
+
+    order = _orders.get(order_id)
+    if order is None:
+        return JSONResponse(
+            status_code=404,
+            content={"error": "Order not found", "status_code": 404},
+        )
+
+    current_status = order["db_status"]
+
+    if current_status == "CANCELLED":
+        return {"status": "CANCELLED", "order_id": order_id}
+
+    if current_status != "CONFIRMED":
+        return JSONResponse(
+            status_code=409,
+            content={
+                "error": f"Order cannot be cancelled in {current_status} state",
+                "status_code": 409,
+            },
+        )
+
+    # Release inventory reservation (synchronous — must complete before marking cancelled)
+    httpx.post(
+        f"{inventory_url}/inventory/release/{release_scenario}",
+        json={"order_id": order_id},
+        timeout=10.0,
+    )
+
+    _orders[order_id]["db_status"] = "CANCELLED"
+
+    # Fire cancellation notification — fire-and-forget per ADR-002
+    _fire_notification(
+        user_id=order.get("user_id", ""),
+        order_id=order_id,
+        total=order.get("total", 0.0),
+        scenario=cancellation_notification_scenario,
+    )
+
+    return {"status": "CANCELLED", "order_id": order_id}
