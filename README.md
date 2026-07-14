@@ -125,13 +125,15 @@ order-api/
 │   ├── issue-15-claude-md.md
 │   ├── issue-16-adrs.md
 │   ├── issue-17-evals.md
-│   └── issue-18-runbooks.md
+│   ├── issue-18-runbooks.md
+│   └── issue-20-productivity-jcurve.md
 ├── docs/
 │   ├── spec-audit-framework.md          # Reusable spec audit framework (Issue #8)
 │   ├── skill-review-checklist.md        # Five-dimension skill review checklist (Issue #12)
 │   ├── skill-pr-template.md             # PR template for skill version control (Issue #12)
 │   ├── skill-audit-template.md          # Reusable prompt library audit template (Issue #13)
 │   ├── layer3-artifact-map.md           # Failure mode → artifact type map (Issue #14)
+│   ├── jcurve-conditions-framework.md  # When does infra investment pay off? (Issue #20)
 │   ├── ADR/                            # Architecture Decision Records (Issue #16)
 │   │   ├── ADR-001-inventory-before-payment.md
 │   │   └── ADR-002-fire-and-forget-notification.md
@@ -223,6 +225,7 @@ Each newsletter issue has a corresponding findings file documenting what the age
 | [#17 — Evals as guardrails](findings/issue-17-evals.md)                               | Three pre-flight evals built; four task demonstrations run | The most dangerous change in this session passes all 15 tests. Task 4 (synchronous notification) would cause a complete order processing outage on the first notification service incident — and no behavioral test asserts asynchrony. The eval is the only protection. |
 | [#18 — Runbooks as infrastructure](findings/issue-18-runbooks.md)                     | Two runbook formats compared; dry run executed; one gap found and fixed | "Consider adjusting the timeout if the gateway is slow" is the instruction that earns Issue #18. An agent increases PAYMENT_TIMEOUT_SECONDS above the stub delay, changes the code path from TimeoutException to response handling, breaks Scenario 5, and closes the incident as resolved. The human-facing runbook enables this. The agent-facing runbook prevents it. |
 | [#19 — Full stack assembly](findings/issue-19-full-stack.md)                           | Order cancellation built end-to-end using all three layers simultaneously | The Gherkin quality skill caught 10 UNDERSPECIFIED items before implementation — including the `"is released"` pattern that would have produced another `inventory_released: true` flag (the same gap Issue #8 found). ADR-002 extended the fire-and-forget invariant to a new code path no existing test covers. Two implicit decisions survived all three layers: inventory release body format and test state seeding. Both are in the API-design layer below behavioral specs and above code. |
+| [#20 — Productivity J-curve](findings/issue-20-productivity-jcurve.md)                  | Documentation-only retrospective: time audit, overhead taxonomy, J-curve measurement, six honest answers | 36% of 54 total session hours went to pure infrastructure. Zero features in 10 consecutive sessions. ROI is negative on a pure-efficiency basis, positive on a risk-adjusted basis, positive-compounding on a knowledge-transfer basis. The infrastructure pays off when the failure modes it prevents are real and the project runs long enough to encounter them. |
 
 ---
 
@@ -360,4 +363,4 @@ If you found the repo useful, the newsletter is where the full context lives —
 
 ---
 
-_Repo current as of Issue #19 — Order cancellation built end-to-end using all three layers simultaneously._
+_Repo current as of Issue #20 — Productivity J-curve retrospective: 19 sessions audited, J-curve conditions framework published._
