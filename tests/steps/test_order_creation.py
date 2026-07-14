@@ -68,11 +68,6 @@ def submit_one(user_id, payment_scenario, inventory_scenario, notification_scena
 
 # ── Then ──────────────────────────────────────────────────────────────────────
 
-@then(parsers.parse('the order status is "{expected}"'))
-def check_status(response, expected):
-    b = response["response"].json()
-    assert b["status"] == expected, f"Expected {expected}, got {b['status']}\n{b}"
-
 @then("the response includes an order id")
 def has_order_id(response):
     b = response["response"].json()
@@ -82,11 +77,6 @@ def has_order_id(response):
 def no_order_id(response):
     b = response["response"].json()
     assert not b.get("order_id"), f"Unexpected order_id: {b.get('order_id')}"
-
-@then(parsers.parse("the response status code is {code:d}"))
-def check_http_code(response, code):
-    b = response["response"].json()
-    assert b.get("status_code") == code, f"Expected {code}, got {b.get('status_code')}\n{b}"
 
 @then(parsers.parse('the response includes the decline reason "{reason}"'))
 def check_decline(response, reason):

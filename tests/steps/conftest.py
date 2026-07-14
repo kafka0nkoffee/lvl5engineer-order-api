@@ -4,6 +4,7 @@ Starts mock servers and the order API once per pytest session.
 """
 import os, sys, time, threading
 import pytest
+from pytest_bdd import then, parsers
 
 PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 sys.path.insert(0, PROJECT_ROOT)
@@ -57,3 +58,18 @@ def reset_all_logs(payment_log_shared, inventory_log_shared, notification_log_sh
     payment_log_shared.reset()
     inventory_log_shared.reset()
     notification_log_shared.reset()
+
+
+# ── Shared step definitions (used across multiple feature files) ───────────────
+
+@then(parsers.parse('the order status is "{expected}"'))
+def check_status_shared(response, expected):
+    b = response["response"].json()
+    assert b["status"] == expected, f"Expected {expected}, got {b['status']}\n{b}"
+
+
+@then(parsers.parse("the response status code is {code:d}"))
+def check_http_code_shared(response, code):
+    b = response["response"].json()
+    assert b.get("status_code") == code, \
+        f"Expected status_code={code}, got {b.get('status_code')}\n{b}"

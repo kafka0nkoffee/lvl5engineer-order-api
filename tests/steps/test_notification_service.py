@@ -85,11 +85,6 @@ def notif_has_status(notif_response, expected):
     body = notif_response.json()
     assert body.get("status") == expected, f"Expected status={expected}, got: {body}"
 
-@then(parsers.parse('the order status is "{expected}"'))
-def check_order_status_notif(response, expected):
-    b = response["response"].json()
-    assert b["status"] == expected, f"Expected {expected}, got {b['status']}\n{b}"
-
 @then("the notification endpoint receives at most one request")
 def notif_at_most_once(notification_log_shared):
     time.sleep(0.3)

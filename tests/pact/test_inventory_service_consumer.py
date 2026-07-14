@@ -89,6 +89,22 @@ def test_inventory_service_consumer_contract():
         )
     )
 
+    # Scenario 4: reservation release (order cancellation)
+    (
+        pact.upon_receiving("a reservation release for a cancelled order")
+        .given("a confirmed reservation exists for the order")
+        .with_request("POST", "/inventory/release/success")
+        .with_body(
+            {"order_id": "order-abc-123"},
+            content_type="application/json",
+        )
+        .will_respond_with(200)
+        .with_body(
+            {"released": True},
+            content_type="application/json",
+        )
+    )
+
     with pact.serve() as mock_server:
         # Verify scenario 1
         resp = httpx.post(
@@ -120,5 +136,13 @@ def test_inventory_service_consumer_contract():
         by_sku = {i["sku"]: i for i in resp.json()["items"]}
         assert by_sku["SHOE-RED-42"]["available"] is True
         assert by_sku["BELT-BRN-M"]["available"] is False
+
+        # Verify scenario 4
+        resp = httpx.post(
+            f"{mock_server.url}/inventory/release/success",
+            json={"order_id": "order-abc-123"},
+        )
+        assert resp.status_code == 200
+        assert resp.json()["released"] is True
 
     pact.write_file(PACT_DIR, overwrite=True)
