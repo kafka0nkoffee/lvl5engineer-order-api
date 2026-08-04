@@ -127,7 +127,8 @@ order-api/
 │   ├── issue-17-evals.md
 │   ├── issue-18-runbooks.md
 │   ├── issue-20-productivity-jcurve.md
-│   └── spinoff-okf-conversion.md       # OKF conversion experiment (Spin-off)
+│   ├── spinoff-okf-conversion.md       # OKF conversion experiment (Spin-off)
+│   └── spinoff-d-superpowers-experiment.md  # Superpowers comparison experiment (Spin-off D)
 ├── docs/
 │   ├── index.md                         # OKF bundle root index (Spin-off)
 │   ├── log.md                           # Bundle update history (Spin-off)
@@ -237,6 +238,7 @@ Each newsletter issue has a corresponding findings file documenting what the age
 | [#19 — Full stack assembly](findings/issue-19-full-stack.md)                           | Order cancellation built end-to-end using all three layers simultaneously | The Gherkin quality skill caught 10 UNDERSPECIFIED items before implementation — including the `"is released"` pattern that would have produced another `inventory_released: true` flag (the same gap Issue #8 found). ADR-002 extended the fire-and-forget invariant to a new code path no existing test covers. Two implicit decisions survived all three layers: inventory release body format and test state seeding. Both are in the API-design layer below behavioral specs and above code. |
 | [#20 — Productivity J-curve](findings/issue-20-productivity-jcurve.md)                  | Documentation-only retrospective: time audit, overhead taxonomy, J-curve measurement, six honest answers | 36% of 54 total session hours went to pure infrastructure. Zero features in 10 consecutive sessions. ROI is negative on a pure-efficiency basis, positive on a risk-adjusted basis, positive-compounding on a knowledge-transfer basis. The infrastructure pays off when the failure modes it prevents are real and the project runs long enough to encounter them. |
 | [Spin-off — OKF conversion](findings/spinoff-okf-conversion.md)                         | Converted all 24 docs/ files to OKF v0.1; ran two-agent comparison experiment | OKF gives an agent a view of what it doesn't know. CLAUDE.md's direct pointers are faster; OKF's index hierarchy is more complete. The right architecture is both: CLAUDE.md for routing and behavioral instructions, OKF for structural completeness and cross-linking. |
+| [Spin-off D — Superpowers experiment](findings/spinoff-d-superpowers-experiment.md)      | Three-condition comparison: baseline (3-layer only), Superpowers only, full stack | Writing the `Given` step is the mechanism. The Gherkin quality skill catches the storage architecture mismatch before any code is written. Brainstorming misses it. TDD catches it later as a failing test. The most important Q2 answer: what the three-layer infrastructure catches that Superpowers misses is spec-level forcing of architectural constraints — before the plan is committed. |
 
 ---
 
@@ -374,4 +376,4 @@ If you found the repo useful, the newsletter is where the full context lives —
 
 ---
 
-_Repo current as of Spin-off OKF — All 24 docs/ files converted to OKF v0.1 conformant bundle; two-agent comparison experiment run; CLAUDE.md + OKF architecture documented._
+_Repo current as of Spin-off D — Superpowers three-condition comparison experiment complete; all 20 tests passing; implementation reverted; findings documented._

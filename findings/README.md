@@ -31,6 +31,7 @@ protocol defined in `CLAUDE.md`. They are the raw material for each newsletter i
 | #19   | Full stack assembly: order cancellation end-to-end with all three layers | [issue-19-full-stack.md](issue-19-full-stack.md) |
 | #20   | Productivity J-curve: was the infrastructure investment worth it? | [issue-20-productivity-jcurve.md](issue-20-productivity-jcurve.md) |
 | Spin-off | OKF conversion: converting the order-api to Open Knowledge Format | [spinoff-okf-conversion.md](spinoff-okf-conversion.md) |
+| Spin-off D | Superpowers experiment: three-condition comparison (baseline, Superpowers, full stack) | [spinoff-d-superpowers-experiment.md](spinoff-d-superpowers-experiment.md) |
 
 ---
 
